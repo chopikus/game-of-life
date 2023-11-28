@@ -3,3 +3,18 @@ node_modules
 /target
 /pkg
 /wasm-pack.log
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
+/Cargo.lock
