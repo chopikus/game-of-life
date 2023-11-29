@@ -6,6 +6,14 @@ cfg_if! {
     }
 }
 
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
 use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 #[repr(u8)]
@@ -27,14 +35,20 @@ impl Universe {
     pub fn new() -> Universe {
         let width = 64;
         let height = 64;
-
         let cells = (0..width * height)
-            .map(|i| {
-                if i % 2 == 0 || i % 7 == 0 {
-                    Cell::Alive
-                } else {
-                    Cell::Dead
+            .map(|id| {
+                let (x, y) = ((id as u32) / width, (id as u32) % width);
+                
+                let result = match (x, y) {
+                    (10, 10) | (9..=11, 11) | (10, 12) => Cell::Alive,
+                    _ => Cell::Dead,
+                };
+
+                if result == Cell::Alive {
+                    log(&("Alive cell! ".to_string() + &x.to_string() + " " + &y.to_string()));    
                 }
+
+                result
             })
             .collect();
 
@@ -52,7 +66,7 @@ impl Universe {
     /* Note: does not do conversions of x,y to usize prior to calculation. */
     fn get_cells_index(&self, x: u32, y: u32) -> usize {
         (self.width * y + x) as usize
-    }
+    } 
 
     fn alive_neighbour_count(&self, x: u32, y: u32) -> u8 {
         let mut count = 0;
@@ -73,8 +87,8 @@ impl Universe {
 
     pub fn tick(&mut self) {
         let mut next = self.cells.clone();
-        for x in 0..self.height {
-            for y in 0..self.width {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 let alive_neighbours = self.alive_neighbour_count(x, y);
 
                 let idx = self.get_cells_index(x, y);
@@ -90,6 +104,7 @@ impl Universe {
                 next[idx] = next_cell;
             }
         }
+        self.cells = next;
     }
 }
 
