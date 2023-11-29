@@ -1,3 +1,6 @@
-import * as wasm from "game-of-life";
+import { Universe } from "game-of-life";
 
-wasm.greet();
+const pre = document.getElementById("canvas");
+const universe = Universe.new();
+
+pre.textContent = universe.render();
