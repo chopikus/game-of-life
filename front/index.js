@@ -1,41 +1,57 @@
-import { Universe } from "game-of-life";
+function main() {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
 
-const pre = document.getElementById("canvas");
-const universe = Universe.new();
+    window.addEventListener('resize', resizeCanvas, false);
 
-var fps = 2;
-var now;
-var then = Date.now();
-var interval = 1000/fps;
-var delta;
-  
-function draw() {
-     
-    requestAnimationFrame(draw);
-     
-    now = Date.now();
-    delta = now - then;
-     
-    if (delta > interval) {
-        // update time stuffs
-         
-        // Just `then = now` is not enough.
-        // Lets say we set fps at 10 which means
-        // each frame must take 100ms
-        // Now frame executes in 16ms (60fps) so
-        // the loop iterates 7 times (16*7 = 112ms) until
-        // delta > interval === true
-        // Eventually this lowers down the FPS as
-        // 112*10 = 1120ms (NOT 1000ms).
-        // So we have to get rid of that extra 12ms
-        // by subtracting delta (112) % interval (100).
-        // Hope that makes sense.
-        
-        then = now - (delta % interval);
-         
-	pre.textContent = universe.render();
-	universe.tick();	
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        drawGrid(ctx);
+        fillCells(ctx);
+    }
+
+    resizeCanvas(); 
+}
+
+
+const cell_size = 50;
+const offset_x = 20;
+const offset_y = 20;
+const line_thickness = 1;
+
+function drawGrid(ctx) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = line_thickness;
+    const cellX = Math.ceil(w / cell_size);
+    const cellY = Math.ceil(h / cell_size);
+    ctx.beginPath();
+    for (let x = 0; x < cellX; x += 1) {
+        ctx.moveTo(grid_start + x * cell_size, 0);
+        ctx.lineTo(grid_start + x * cell_size, h);
+        ctx.stroke();
+    }
+    for (let y = 0; y < cellY; y += 1) {
+        ctx.moveTo(0, grid_start + y * cell_size);
+        ctx.lineTo(w, grid_start + y * cell_size);
+        ctx.stroke();
+    }
+    ctx.closePath();
+}
+
+function fillCells(ctx) {
+    ctx.fillStyle = "yellow";
+    cells_to_fill = [[0, 0], [5, 5], [10, 10]];
+    for (const cell of cells_to_fill) {
+        let x = cell[0];
+        let y = cell[1];
+        ctx.fillRect(grid_start + (x-1) * cell_size + line_thickness / 2,
+                     grid_start + (y-1) * cell_size + line_thickness / 2,
+                     cell_size - line_thickness, 
+                     cell_size - line_thickness);
     }
 }
- 
-draw();
+
+main();
