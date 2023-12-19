@@ -1,8 +1,6 @@
 let viewX = 0;
 let viewY = 0;
 let scale = 50;
-let w = 0;
-let h = 0;
 
 function main() {
     const canvas = document.getElementById('canvas');
@@ -33,7 +31,13 @@ function addListeners(ctx) {
     }));
 
     ctx.canvas.addEventListener("wheel", e => {
+        let old_w = ctx.canvas.width / scale;
+        let old_h = ctx.canvas.height / scale;
         scale *= Math.pow(2, e.deltaY / 1000);
+        let new_w = ctx.canvas.width / scale;
+        let new_h = ctx.canvas.height / scale;
+        viewX += (old_w - new_w) / 2;
+        viewY += (old_h - new_h) / 2;
         draw(ctx);
     });
 
@@ -55,14 +59,14 @@ function cellCoordsToScreen(x, y) {
 }
 
 function draw(ctx) {
-    // clearing then drawing grid
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     drawGrid(ctx); 
+    drawCells(ctx);
 }
 
 function drawGrid(ctx) {
-    w = ctx.canvas.width / scale;
-    h = ctx.canvas.height / scale;
+    let w = ctx.canvas.width / scale;
+    let h = ctx.canvas.height / scale;
     ctx.strokeStyle = "#000000";
     drawing = true;
     if (scale >= 40)
@@ -86,6 +90,9 @@ function drawGrid(ctx) {
             ctx.stroke();
         }
     }
+}
+
+function drawCells(ctx) {
     let {x, y} = cellCoordsToScreen(0, 0);
     ctx.fillRect(x, y, scale, scale);
     ctx.closePath();
