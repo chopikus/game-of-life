@@ -1,21 +1,26 @@
+import { Universe } from "game-of-life";
+
 let viewX = 0;
 let viewY = 0;
-let scale = 50;
+let scale = 10;
+let ctx;
+const universe = Universe.new();
 
 function main() {
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('2d');
 
     window.addEventListener('resize', resizeCanvas, false);
 
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        addListeners(ctx);
-        draw(ctx);
+        draw();
     }
 
     resizeCanvas();
+    addListeners(ctx);
+    requestAnimationFrame(cycle);
 }
 
 
@@ -33,23 +38,23 @@ function addListeners(ctx) {
     ctx.canvas.addEventListener("wheel", e => {
         let old_w = ctx.canvas.width / scale;
         let old_h = ctx.canvas.height / scale;
-        scale *= Math.pow(2, e.deltaY / 1000);
+        scale *= Math.pow(2, e.deltaY / 3000);
         let new_w = ctx.canvas.width / scale;
         let new_h = ctx.canvas.height / scale;
         viewX += (old_w - new_w) / 2;
         viewY += (old_h - new_h) / 2;
-        draw(ctx);
+        draw();
     });
 
     ctx.canvas.addEventListener("mousemove", e => {
         if (!mouseStart)
             return;
-        dx = e.clientX - mouseStart.x;
-        dy = e.clientY - mouseStart.y;
+        let dx = e.clientX - mouseStart.x;
+        let dy = e.clientY - mouseStart.y;
         viewX -= dx / scale;
         viewY -= dy / scale;
-        draw(ctx);
         mouseStart = {x: e.clientX, y: e.clientY};
+        draw();
     });
 }
 
@@ -58,17 +63,34 @@ function cellCoordsToScreen(x, y) {
             y: (y - viewY) * scale};
 }
 
-function draw(ctx) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    drawGrid(ctx); 
-    drawCells(ctx);
+let then = Date.now();
+let fps = 5;
+let alive_cells;
+
+function cycle() {
+    let interval = 1000/fps;
+    let now = Date.now();
+    let delta = now - then;
+    if (delta > 1000 / fps) {
+        universe.tick();
+        alive_cells = universe.render();
+        draw();
+        then = now - (delta % interval);
+    }
+    requestAnimationFrame(cycle);
 }
 
-function drawGrid(ctx) {
+function draw() {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    drawGrid(); 
+    drawCells();
+}
+
+function drawGrid() {
     let w = ctx.canvas.width / scale;
     let h = ctx.canvas.height / scale;
     ctx.strokeStyle = "#000000";
-    drawing = true;
+    let drawing = true;
     if (scale >= 40)
         ctx.lineWidth = Math.ceil(scale / 50);
     else
@@ -92,10 +114,15 @@ function drawGrid(ctx) {
     }
 }
 
-function drawCells(ctx) {
-    let {x, y} = cellCoordsToScreen(0, 0);
-    ctx.fillRect(x, y, scale, scale);
-    ctx.closePath();
+function drawCells() {
+    if (alive_cells) {
+        let parsed_response = JSON.parse(alive_cells);
+        parsed_response.forEach((cell) => {
+            let {x, y} = cellCoordsToScreen(cell[0], cell[1]);
+            ctx.fillRect(x, y, scale, scale);
+            ctx.closePath();    
+        });
+    }
 }
 
 main();
