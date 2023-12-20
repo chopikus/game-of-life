@@ -8,6 +8,3 @@ My implementation of [Conway's Game of life](https://en.wikipedia.org/wiki/Conwa
 1. From a repo directory: `wasm-pack build`. This builds the Rust part.
 2. From a `front` directory: `npm run start`.
 3. Project is running on http://localhost:8080/.
-
-## Debug mode demo
-[demo.webm](https://github.com/chopikus/game-of-life/assets/67230858/f6c6bc02-2148-402d-a490-d26f508ae378)
