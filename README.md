@@ -9,6 +9,9 @@ My implementation of [Conway's Game of life](https://en.wikipedia.org/wiki/Conwa
 2. From a `front` directory: `npm run start`.
 3. Project is running on http://localhost:8080/.
 
+## Test
+To test the backend, run `cargo test` from the project directory.
+
 ## Debug build demo
 ![demo](https://github.com/chopikus/game-of-life/assets/67230858/8dec5b9a-3b7a-43d0-a12c-5dfd28f4a0bd)
 
