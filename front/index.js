@@ -4,7 +4,7 @@ let viewX = 0;
 let viewY = 0;
 let scale = 10;
 let ctx;
-const universe = Universe.new();
+const universe = Universe.example();
 
 function main() {
     const canvas = document.getElementById('canvas');
@@ -73,7 +73,7 @@ function cycle() {
     let delta = now - then;
     if (delta > 1000 / fps) {
         universe.tick();
-        alive_cells = universe.render();
+        alive_cells = universe.alive_cells_str();
         draw();
         then = now - (delta % interval);
     }
