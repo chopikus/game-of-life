@@ -1,11 +1,3 @@
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
 use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 #[repr(u8)]
@@ -27,18 +19,6 @@ impl Universe {
     pub fn new() -> Universe {
         let width = 64;
         let height = 64;
-        /*let cells = (0..width * height)
-            .map(|id| {
-                let (x, y) = ((id as u32) / width, (id as u32) % width);
-                
-                let result = match (x, y) {
-                    (10, 10) | (9..=11, 11) | (10, 12) => Cell::Alive,
-                    _ => Cell::Dead,
-                };
-
-                result
-            })
-            .collect();*/
         let cells = (0..width * height)
             .map(|i| {
                 if i % 2 == 0 || i % 7 == 0 {
@@ -73,7 +53,27 @@ impl Universe {
         json!(alive_cells).to_string()
     }
 
-    /* Note: does not do conversions of x,y to usize prior to calculation. */
+    pub fn tick(&mut self) {
+        let mut next = self.cells.clone();
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let alive_neighbours = self.alive_neighbour_count(x, y);
+
+                let idx = self.get_cells_index(x, y);
+                let cell = self.cells[idx];
+
+                let next_cell = match (cell, alive_neighbours) {
+                    (Cell::Dead, 3) => Cell::Alive,
+                    (Cell::Alive, 2..=3) => Cell::Alive,
+                    _ => Cell::Dead,
+                };
+
+                next[idx] = next_cell;
+            }
+        }
+        self.cells = next;
+    }
+    
     fn get_cells_index(&self, x: u32, y: u32) -> usize {
         (self.width * y + x) as usize
     } 
@@ -94,33 +94,4 @@ impl Universe {
         }
         count
     }
-
-    pub fn tick(&mut self) {
-        let mut next = self.cells.clone();
-        for x in 0..self.width {
-            for y in 0..self.height {
-                let alive_neighbours = self.alive_neighbour_count(x, y);
-
-                let idx = self.get_cells_index(x, y);
-                let cell = self.cells[idx];
-
-                let next_cell = match (cell, alive_neighbours) {
-                    (Cell::Dead, 3) => Cell::Alive,
-                    (Cell::Dead, _) => Cell::Dead,
-                    (Cell::Alive, 2..=3) => Cell::Alive,
-                    (Cell::Alive, _) => Cell::Dead,
-                };
-
-                next[idx] = next_cell;
-            }
-        }
-        self.cells = next;
-    }
 }
-
-#[allow(unused_variables)]
-fn main() {
-    extern crate wasm_bindgen;
-}
-
-mod utils;
