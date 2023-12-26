@@ -6,7 +6,7 @@ let scale = 10;
 let ctx;
 const universe = Universe.example();
 
-function main() {
+function game() {
     const canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
@@ -19,6 +19,7 @@ function main() {
     }
 
     resizeCanvas();
+
     addListeners(ctx);
     requestAnimationFrame(cycle);
 }
@@ -81,7 +82,8 @@ function cycle() {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     drawGrid(); 
     drawCells();
 }
@@ -89,7 +91,7 @@ function draw() {
 function drawGrid() {
     let w = ctx.canvas.width / scale;
     let h = ctx.canvas.height / scale;
-    ctx.strokeStyle = "#000000";
+    ctx.strokeStyle = "#ffffff";
     let drawing = true;
     if (scale >= 40)
         ctx.lineWidth = Math.ceil(scale / 50);
@@ -115,6 +117,7 @@ function drawGrid() {
 }
 
 function drawCells() {
+    ctx.fillStyle = "#ffffff";
     if (alive_cells) {
         let parsed_response = JSON.parse(alive_cells);
         parsed_response.forEach((cell) => {
@@ -125,4 +128,4 @@ function drawCells() {
     }
 }
 
-main();
+//game();
