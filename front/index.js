@@ -13,22 +13,20 @@ function onPlay() {
         let end = Math.min((i+1) * chunk_size, file.size);
         blobs.push(file.slice(start, end));
     }
-     
-    var dest = new WritableStream({
-      write (str) {
-        console.log(str)
-      }
-    });
-
-    let blob = blobs[0];
-    (blob.stream ? blob.stream() : new Response(blob).body)
-      // Decode the binary-encoded response to string
-      .pipeThrough(new TextDecoderStream())
-      .pipeTo(dest)
-      .then(() => {
-        console.log('done')
-      })
-    console.log(blobs);
+    
+    function readBlob(i) {
+        if (i >= blobs.length) {
+            return;
+        }
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+            console.log(reader.result);
+            readBlob(i+1);
+        });
+        reader.readAsText(blobs[i]);
+    }
+    readBlob(0);
+    
 }
 
 function onInputChange(e) {
