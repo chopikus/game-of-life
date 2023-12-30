@@ -1,10 +1,10 @@
-import { Universe } from "game-of-life";
+//import { Universe } from "game-of-life";
 
 let viewX = 0;
 let viewY = 0;
 let scale = 10;
 let ctx;
-const universe = Universe.example();
+//const universe = Universe.example();
 
 function addPan() { 
     let mouseStart = null;
@@ -111,6 +111,7 @@ function drawCells() {
 }
 
 function startGame() {
+    /*
     const canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
@@ -125,6 +126,9 @@ function startGame() {
     addPan();
     addScale();
     requestAnimationFrame(gameCycle);
+    */
+    console.log("hello!");
+    console.log(backend);
 }
 
 export {startGame};
