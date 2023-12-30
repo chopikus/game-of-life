@@ -1,10 +1,9 @@
-//import { Universe } from "game-of-life";
+var backend = globalThis.backend;
 
 let viewX = 0;
 let viewY = 0;
 let scale = 10;
 let ctx;
-//const universe = Universe.example();
 
 function addPan() { 
     let mouseStart = null;
@@ -55,6 +54,9 @@ function gameCycle() {
     let now = Date.now();
     let delta = now - then;
     if (delta > 1000 / fps) {
+        backend().then(function(mymod) {
+          console.log(mymod);
+        });
         universe.tick();
         alive_cells = universe.alive_cells_str();
         draw();

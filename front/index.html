@@ -11,14 +11,17 @@
   <body>
     <noscript>Please enable javascript in your browser.</noscript>
     <div id="bg">
-        <canvas id="canvas"></canvas>
-        <div id="menu">
+        <canvas id="canvas" hidden></canvas>
+        <div id="menu" hidden>
             <h2 id="name">GAME OF LIFE</h1>
             <input id="file-input" type="file" accept=".rle"/>
             <button id="play-button" disabled>PLAY</button>
         </div>
+        <div id="loading">
+            <p>Loading..</p>
+        </div>
     </div>
-    <script type="module" src="index.js"></script>
-    <script src="./pkg/backend.js" defer></script>
+    <script src="wasm_loader.js"></script>
+    <script src="./pkg/backend.js"></script>
   </body>
 </html>
