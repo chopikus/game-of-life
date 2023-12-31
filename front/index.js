@@ -1,4 +1,4 @@
-var backend = globalThis.backend;
+let backend = globalThis.backend;
 import {startGame} from "./game.js";
 
 let chosen_file;

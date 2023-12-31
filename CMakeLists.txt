@@ -1,7 +1,8 @@
-project(game-of-life)
 cmake_minimum_required(VERSION 3.5)
+project(game-of-life)
+include(FetchContent)
 
-add_definitions(-std=c++11 -O3)
+add_definitions(-std=c++20 -O3)
 include_directories(include)
 
 file(GLOB SOURCES src/*.cpp)

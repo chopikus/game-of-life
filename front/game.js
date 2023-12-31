@@ -1,9 +1,10 @@
-var backend = globalThis.backend;
+let backend = globalThis.backend;
 
 let viewX = 0;
 let viewY = 0;
 let scale = 10;
 let ctx;
+let universe = backend.Universe.example();
 
 function addPan() { 
     let mouseStart = null;
@@ -54,9 +55,6 @@ function gameCycle() {
     let now = Date.now();
     let delta = now - then;
     if (delta > 1000 / fps) {
-        backend().then(function(mymod) {
-          console.log(mymod);
-        });
         universe.tick();
         alive_cells = universe.alive_cells_str();
         draw();
@@ -73,6 +71,8 @@ function draw() {
 }
 
 function drawGrid() {
+    let w = ctx.canvas.width / scale;
+    let h = ctx.canvas.height / scale;
     ctx.strokeStyle = "#ffffff";
 
     let drawing = false;
@@ -105,7 +105,7 @@ function drawCells() {
     if (alive_cells) {
         let parsed_response = JSON.parse(alive_cells);
         parsed_response.forEach((cell) => {
-            let {x, y} = cellCoordsToScreen(cell[0], cell[1]);
+            let {x, y} = cellCoordsToScreen(cell.x, cell.y);
             ctx.fillRect(x, y, scale, scale);
             ctx.closePath();    
         });
@@ -113,7 +113,10 @@ function drawCells() {
 }
 
 function startGame() {
-    /*
+    document.getElementById("loading").hidden = true;
+    document.getElementById("menu").hidden = true;
+    document.getElementById("canvas").hidden = false; 
+
     const canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
@@ -128,9 +131,6 @@ function startGame() {
     addPan();
     addScale();
     requestAnimationFrame(gameCycle);
-    */
-    console.log("hello!");
-    console.log(backend);
 }
 
 export {startGame};
