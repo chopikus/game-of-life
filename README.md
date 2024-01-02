@@ -27,9 +27,6 @@ Frontend scripts are executed in the following order:
 6. `cd ../front`.
 7. Run local server from the current folder. Example: `basic-http-server .`
 
-## Test
-To test the backend, run `cargo test` from the project directory.
-
-## Debug build demo
-![demo](https://github.com/chopikus/game-of-life/assets/67230858/8dec5b9a-3b7a-43d0-a12c-5dfd28f4a0bd)
+## Local build demo
+TODO
 
