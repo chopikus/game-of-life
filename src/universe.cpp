@@ -75,14 +75,18 @@ void Universe::tick() {
     }
 }
 
-std::string Universe::alive_cells_str() {
+nlohmann::json Universe::alive_cells() {
     auto result = nlohmann::json::array();
     for (const auto& [y, columns]: alive_cells_row) {
         for (const auto& x : columns) {
             result.push_back({{"x", x}, {"y", y}});
         }
     }
-    return result.dump();
+    return result;
+}
+
+std::string Universe::alive_cells_str() {
+    return alive_cells().dump();
 }
 
 EMSCRIPTEN_BINDINGS(universe) {
