@@ -22,7 +22,7 @@ Frontend scripts are executed in the following order:
 1. Clone a repository.
 2. `mkdir build; cd build` -- create `build` folder and go to it.
 3. `emcmake cmake ..`;
-4. `make`;
+4. `make` -- builds C++ backend;
 5. `make test` -- tests C++ backend;
 6. `cd ../front`.
 7. Run local server from the current folder. Example: `basic-http-server .`
