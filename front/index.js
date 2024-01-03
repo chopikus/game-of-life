@@ -3,11 +3,12 @@ import {startGame} from "./game.js";
 
 let chosen_file;
 let play_button;
+let rle_parser = new backend.RleParser();
 
 function onPlay() {
     let file = chosen_file;
     let r = new FileReader();
-    const chunk_size = 8 * 1024 * 1024;
+    const chunk_size = 1024 * 1024;
     let blobs = [];
     for (let i = 0; i < Math.ceil(file.size / chunk_size); i+=1) {
         let start = i * chunk_size;
@@ -17,12 +18,12 @@ function onPlay() {
     
     function readBlob(i) {
         if (i >= blobs.length) {
-            startGame();
+            startGame(rle_parser.result());
             return;
         }
         const reader = new FileReader();
         reader.addEventListener("load", () => {
-            console.log(reader.result);
+            rle_parser.add_chunk(reader.result);
             readBlob(i+1);
         });
         reader.readAsText(blobs[i]);

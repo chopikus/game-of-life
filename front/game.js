@@ -4,7 +4,7 @@ let viewX = 0;
 let viewY = 0;
 let scale = 10;
 let ctx;
-let universe = backend.Universe.example();
+let universe;
 
 function addPan() { 
     let mouseStart = null;
@@ -112,7 +112,8 @@ function drawCells() {
     }
 }
 
-function startGame() {
+function startGame(parsedUniverse) {
+    universe = parsedUniverse;
     document.getElementById("loading").hidden = true;
     document.getElementById("menu").hidden = true;
     document.getElementById("canvas").hidden = false; 
