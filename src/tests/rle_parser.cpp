@@ -3,8 +3,6 @@
 #include <sstream>
 #include "../rle_parser.h"
 #include "mock/rle.h"
-#include <iostream>
-
 
 TEST(RleParser, glider) {
     RleParser parser{};
@@ -35,7 +33,6 @@ TEST(RleParser, twoSquares) {
         return std::find(alive_cells.begin(), alive_cells.end(), key) != alive_cells.end();
     };
     EXPECT_EQ(alive_cells.size(), 8);
-    std::cerr << alive_cells.dump() << std::endl;
     EXPECT_TRUE(contains({{"x", 0}, {"y", 0}}));
     EXPECT_TRUE(contains({{"x", 1}, {"y", 0}}));
     EXPECT_TRUE(contains({{"x", 0}, {"y", 1}}));
