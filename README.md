@@ -31,6 +31,3 @@ Frontend scripts are executed in the following order:
 6. `cd ../front`.
 7. Run local server from the current folder. Example: `basic-http-server .`
 
-## Local build demo
-TODO
-
