@@ -102,11 +102,14 @@ function drawGrid() {
 
 function drawCells() {
     ctx.fillStyle = "#ffffff";
+    let drawScale = Math.max(1, scale);
     if (alive_cells) {
         let parsed_response = JSON.parse(alive_cells);
         parsed_response.forEach((cell) => {
             let {x, y} = cellCoordsToScreen(cell.x, cell.y);
-            ctx.fillRect(x, y, scale, scale);
+            x = Math.floor(x);
+            y = Math.floor(y);
+            ctx.fillRect(x, y, drawScale, drawScale);
             ctx.closePath();    
         });
     }
