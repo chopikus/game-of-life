@@ -33,5 +33,5 @@ Frontend scripts are executed in the following order:
 
 ## Limitations
 1. Hashlife is not implemented;
-2. Downsampling is implemented with poor performance (each pixel can be drawn in the same color multiple times);
+2. Downsampling is implemented with poor performance (each pixel can be drawn with the same color multiple times);
 3. Poor overall performance on large patterns (`otcametapixel.rle` for example).
