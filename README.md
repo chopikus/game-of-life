@@ -1,4 +1,8 @@
 # game-of-life
+
+https://github.com/chopikus/game-of-life/assets/67230858/377841fd-7966-495f-a2ac-a4af830d0fb7
+
+
 My implementation of [Conway's Game of life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
 This project relies on [WebAssembly](https://webassembly.org/) and [Emscripten](https://emscripten.org/).
