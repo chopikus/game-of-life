@@ -31,3 +31,7 @@ Frontend scripts are executed in the following order:
 6. `cd ../front`.
 7. Run local server from the current folder. Example: `basic-http-server .`
 
+## Limitations
+1. Hashlife not implemented;
+2. Downsampling implemented with poor performance (each pixel can be drawn in the same color multiple times);
+3. Poor performance on large patterns (`otcametapixel.rle` for example).
