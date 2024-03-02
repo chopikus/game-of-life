@@ -7,7 +7,6 @@ class RleParser {
     public:
     RleParser() {};
 
-    /* The first line (along with \n) must be added fully. */
     void add_chunk(const std::string& s);
     Universe result();
 
