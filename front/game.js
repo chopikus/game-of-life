@@ -2,7 +2,7 @@ let backend = globalThis.backend;
 
 let viewX = 0;
 let viewY = 0;
-let scale = 10;
+let scale = 50;
 let ctx;
 let universe;
 
@@ -28,37 +28,24 @@ function addPan() {
     });
 }
 
-function addScale() {
-    ctx.canvas.addEventListener("wheel", e => {
-        let old_w = ctx.canvas.width / scale;
-        let old_h = ctx.canvas.height / scale;
-        scale *= Math.pow(2, e.deltaY / 3000);
-        let new_w = ctx.canvas.width / scale;
-        let new_h = ctx.canvas.height / scale;
-        viewX += (old_w - new_w) / 2;
-        viewY += (old_h - new_h) / 2;
-        draw();
-    });
-}
-
 function cellCoordsToScreen(x, y) {
     return {x: (x - viewX) * scale, 
             y: (y - viewY) * scale};
 }
 
-let then = Date.now();
+let lastTimeDrawn = Date.now();
 let fps = 5;
 let alive_cells;
 
 function gameCycle() {
     let interval = 1000/fps;
     let now = Date.now();
-    let delta = now - then;
-    if (delta > 1000 / fps) {
+    let delta = now - lastTimeDrawn;
+    if (delta > 1000 / fps && !isPaused) {
         universe.tick();
         alive_cells = universe.alive_cells_str();
         draw();
-        then = now - (delta % interval);
+        lastTimeDrawn = now - (delta % interval);
     }
     requestAnimationFrame(gameCycle);
 }
@@ -115,12 +102,47 @@ function drawCells() {
     }
 }
 
-function startGame(parsedUniverse) {
-    universe = parsedUniverse;
-    document.getElementById("loading").hidden = true;
-    document.getElementById("menu").hidden = true;
-    document.getElementById("canvas").hidden = false; 
+let isPaused = false;
+function onPausePlay() {
+   console.log("hello");
+   if (!isPaused) {
+        isPaused = true;
+        document.getElementById("game-pause-play-button").innerText = "▶";
+   } else {
+        isPaused = false;
+        document.getElementById("game-pause-play-button").innerText = "||";
+   }
+}
 
+function onZoomOut() {
+    document.getElementById("game-zoom-out-button").removeEventListener('click', onZoomOut);
+    if (scale <= 10)
+        scale /= 1.5;
+    else
+        scale -= 10;
+    draw();
+    lastTimeDrawn = Date.now();
+    document.getElementById("game-zoom-out-button").addEventListener('click', onZoomOut);
+}
+
+function onZoomIn() {
+    document.getElementById("game-zoom-in-button").removeEventListener('click', onZoomIn);
+    if (scale <= 10)
+        scale *= 1.5;
+    else
+        scale += 10;
+    draw();
+    lastTimeDrawn = Date.now();
+    document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
+}
+
+function addGameMenuListeners() {
+    document.getElementById("game-pause-play-button").addEventListener('click', onPausePlay);
+    document.getElementById("game-zoom-out-button").addEventListener('click', onZoomOut);
+    document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
+}
+
+function fixCanvasResizing() {
     const canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
@@ -131,9 +153,17 @@ function startGame(parsedUniverse) {
     }
     window.addEventListener('resize', resizeCanvas, false);
     resizeCanvas();
+}
 
+function startGame(parsedUniverse) {
+    universe = parsedUniverse;
+    document.getElementById("loading").hidden = true;
+    document.getElementById("menu").hidden = true;
+    document.getElementById("canvas").hidden = false; 
+    document.getElementById("game-menu").hidden = false;
+    addGameMenuListeners();
+    fixCanvasResizing();
     addPan();
-    addScale();
     requestAnimationFrame(gameCycle);
 }
 
