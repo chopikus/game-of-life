@@ -9,6 +9,11 @@ This project relies on [WebAssembly](https://webassembly.org/) and [Emscripten](
 
 Computation of a grid is done in C++; visualization is in written in JavaScript (`front` folder).
 
+This implementation is largely inspired from [this](https://johnhw.github.io/hashlife/index.md.html) amazing explanation made by [johnhw](https://github.com/johnhw)!
+
+[cpp-lru-cache](https://github.com/lamerman/cpp-lru-cache) is used in this implementation (Copyright (c) 2014, lamerman)
+
+
 ## Structure
 * `src` -- C++ backend;
 * `src/tests` -- C++ backend tests;
@@ -30,8 +35,3 @@ Frontend scripts are executed in the following order:
 5. `make test` -- tests C++ backend;
 6. `cd ../front`.
 7. Run local server from the current folder. Example: `basic-http-server .`
-
-## Limitations
-1. Hashlife is not implemented;
-2. Downsampling is implemented with poor performance (each pixel can be drawn with the same color multiple times);
-3. Poor overall performance on large patterns (`otcametapixel.rle` for example).
