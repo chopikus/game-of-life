@@ -35,7 +35,7 @@ class Hashlife {
     const static NodePtr on;
     const static NodePtr off;
 
-    Hashlife(int64_t min_x, int64_t min_y, const std::set<Cell>& active_cells);
+    Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active_cells);
 
     /* returns a node from nodes a,b,c,d (cached)*/
     NodePtr join(const NodePtr& a, const NodePtr& b, const NodePtr& c, const NodePtr& d);
@@ -72,5 +72,5 @@ class Hashlife {
 
     NodePtr root;
     cache::lru_cache<uint8_t, NodePtr> zero_cache{300};
-    cache::lru_cache<uint64_t, NodePtr> join_cache{100000};
+    cache::lru_cache<uint64_t, NodePtr> join_cache{1000000};
 };

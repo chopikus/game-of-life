@@ -7,29 +7,48 @@ const NodePtr Hashlife::on = std::make_shared<Node>(0, nullptr, nullptr,
 const NodePtr Hashlife::off = std::make_shared<Node>(0, nullptr, nullptr, 
                                                      nullptr, nullptr, 0, 0);
 
-Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::set<Cell>& active_cells) {
+Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active_cells) {
     if (active_cells.empty())
     {
         root = off;
         return;
     }
-    
-    size_t k = 0;
-
-    std::set<Cell> cur;
+    std::map<Cell, NodePtr> cur;
     for (auto c : active_cells) {
-        cur.insert({c.x, c.y});
+        /* changing coordinates so that all coordinates are >=0*/
+        cur.insert({Cell{c.x-min_x, c.y-min_y}, on});
     }
-    
-    auto z = get_zero(k);
 
+    size_t k = 0;
     while (cur.size() > 1) {
-        std::set<Cell> next_level;
+        auto pop = [&](int64_t x, int64_t y) -> NodePtr {
+            auto it = cur.find({x, y});
+            if (it == cur.end())
+                return nullptr;
+            else
+                return it->second;
+        };
 
+        auto z = get_zero(k);
+        std::map<Cell, NodePtr> next_level;
+
+        while (cur.size() > 0) {
+            auto [x, y] = cur.begin()->first;
+            x -= x & 2;
+            y -= y & 2;
+            NodePtr a = pop(x, y);
+            NodePtr b = pop(x+1, y);
+            NodePtr c = pop(x, y+1);
+            NodePtr d = pop(x+1, y+1);
+            next_level.insert({{x, y}, join(a,b,c,d)});
+        }
 
         cur.clear();
         cur = std::move(next_level);
+        k+=1;
     }
+
+    root = cur.begin()->second;
 }
 
 NodePtr Hashlife::get_zero(uint8_t k) {

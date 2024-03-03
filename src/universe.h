@@ -10,7 +10,7 @@ struct Cell {
     int64_t x;
     int64_t y;
 
-    bool operator<(const Cell& other);
+    bool operator<(const Cell& other) const;
 };
 
 class Universe {

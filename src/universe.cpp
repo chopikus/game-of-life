@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-bool Cell::operator<(const Cell& other) {
+bool Cell::operator<(const Cell& other) const {
     if (this->x == other.x)
         return this->y < other.y;
     return this->x < other.x;
