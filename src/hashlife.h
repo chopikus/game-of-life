@@ -2,6 +2,7 @@
 #include "lib/lrucache.hpp"
 #include "universe.h"
 
+#include <iostream>
 #include <cstdint>
 #include <memory>
 #include <set>
@@ -69,6 +70,17 @@ class Hashlife {
     NodePtr successor(const NodePtr& m, uint8_t j = 0);
     
     NodePtr rootSuccessor(uint8_t j = 0);
+
+    void append_alive_cells(const NodePtr& node, std::vector<Cell>& output,
+                            uint8_t level,
+                            int64_t x, int64_t y,
+                            int64_t min_x, int64_t min_y,
+                            int64_t max_x, int64_t max_y);
+
+    void append_alive_cells_root(std::vector<Cell>& output,
+                                  uint8_t level,
+                                  int64_t min_x, int64_t min_y,
+                                  int64_t max_x, int64_t max_y);
 
     NodePtr root;
     cache::lru_cache<uint8_t, NodePtr> zero_cache{300};

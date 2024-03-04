@@ -25,22 +25,29 @@ Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active
             auto it = cur.find({x, y});
             if (it == cur.end())
                 return nullptr;
-            else
-                return it->second;
+            else {
+                auto result = it->second;
+                cur.erase({x, y});
+                return result;
+            }
         };
 
         auto z = get_zero(k);
         std::map<Cell, NodePtr> next_level;
-
+        int k = 10;
         while (cur.size() > 0) {
             auto [x, y] = cur.begin()->first;
-            x -= x & 2;
-            y -= y & 2;
+            std::cout << "[x, y] = " << x << ", " << y << std::endl;
+            x -= x & 1;
+            y -= y & 1;
             NodePtr a = pop(x, y);
             NodePtr b = pop(x+1, y);
             NodePtr c = pop(x, y+1);
             NodePtr d = pop(x+1, y+1);
             next_level.insert({{x, y}, join(a,b,c,d)});
+            k--;
+            if (k<=0)
+            break;
         }
 
         cur.clear();
@@ -67,7 +74,7 @@ NodePtr Hashlife::get_zero(uint8_t k) {
 }
 
 NodePtr Hashlife::join(const NodePtr& a, const NodePtr& b, 
-                    const NodePtr& c, const NodePtr& d) {
+                       const NodePtr& c, const NodePtr& d) {
     int64_t n = a->n + b->n + c->n + d->n;
     uint64_t hash = a->k + 2;
     hash += 1001933ull * a->hash;
@@ -177,4 +184,45 @@ NodePtr Hashlife::successor(const NodePtr& m, uint8_t j) {
                 successor(join(c5, c6, c8, c9), j)
             );
     };
+}
+
+void Hashlife::append_alive_cells(const NodePtr& node, std::vector<Cell>& output,
+                                  uint8_t level, 
+                                  int64_t x, int64_t y,
+                                  int64_t min_x, int64_t min_y,
+                                  int64_t max_x, int64_t max_y) {
+
+    /* return alive cells from (min_x, min_y) up to (max_x, max_y) included.*/
+    /* (x, y) is the top-left point of node */
+
+    if (node->n == 0) {
+        return;
+    }
+
+    int64_t size = 1 << (node->k);
+
+    if (x + size <= min_x || x > max_x)
+        return;
+    if (y + size <= min_y || y > max_y)
+        return;
+
+    if (node->k == level) {
+        if ((node -> n) > 0) {
+            output.push_back({x, y});
+        }
+        return;
+    }
+
+    int64_t offset = size >> 1;
+    append_alive_cells(node->a, output, level, x, y, min_x, min_y, max_x, max_y);
+    append_alive_cells(node->b, output, level, x + offset, y, min_x, min_y, max_x, max_y);
+    append_alive_cells(node->c, output, level, x, y + offset, min_x, min_y, max_x, max_y);
+    append_alive_cells(node->d, output, level, x + offset, y + offset, min_x, min_y, max_x, max_y);
+}
+
+void Hashlife::append_alive_cells_root(std::vector<Cell>& output,
+                                        uint8_t level,
+                                        int64_t min_x, int64_t min_y,
+                                        int64_t max_x, int64_t max_y) {
+    append_alive_cells(root, output, level, 0, 0, min_x, min_y, max_x, max_y);
 }
