@@ -21,10 +21,11 @@ Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active
 
     size_t k = 0;
     while (cur.size() > 1) {
+        auto z = get_zero(k);
         auto pop = [&](int64_t x, int64_t y) -> NodePtr {
             auto it = cur.find({x, y});
             if (it == cur.end())
-                return nullptr;
+                return z;
             else {
                 auto result = it->second;
                 cur.erase({x, y});
@@ -32,24 +33,20 @@ Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active
             }
         };
 
-        auto z = get_zero(k);
         std::map<Cell, NodePtr> next_level;
-        int k = 10;
         while (cur.size() > 0) {
             auto [x, y] = cur.begin()->first;
-            std::cout << "[x, y] = " << x << ", " << y << std::endl;
+            
             x -= x & 1;
             y -= y & 1;
             NodePtr a = pop(x, y);
             NodePtr b = pop(x+1, y);
             NodePtr c = pop(x, y+1);
             NodePtr d = pop(x+1, y+1);
-            next_level.insert({{x, y}, join(a,b,c,d)});
-            k--;
-            if (k<=0)
-            break;
+            NodePtr r = join(a, b, c, d);
+            std::cout << "r->n " << r->n << " " << a->n << " " << b->n << " " << c->n << " " << d->n << std::endl;
+            next_level.insert({{x/2, y/2}, join(a,b,c,d)});
         }
-
         cur.clear();
         cur = std::move(next_level);
         k+=1;
@@ -75,16 +72,15 @@ NodePtr Hashlife::get_zero(uint8_t k) {
 
 NodePtr Hashlife::join(const NodePtr& a, const NodePtr& b, 
                        const NodePtr& c, const NodePtr& d) {
-    int64_t n = a->n + b->n + c->n + d->n;
     uint64_t hash = a->k + 2;
     hash += 1001933ull * a->hash;
     hash += 2331061ull * b->hash;
     hash += 6281573ull * c->hash;
     hash += 4591507ull * d->hash;
     hash &= 4294967295ull;
-    if (join_cache.exists(hash)) {
+   if (join_cache.exists(hash)) {
         return join_cache.get(hash);
-    } else {
+   } else {
         auto node = std::make_shared<Node>(
                          static_cast<uint8_t>(a->k + 1),
                          a,
@@ -96,7 +92,7 @@ NodePtr Hashlife::join(const NodePtr& a, const NodePtr& b,
                     );
         join_cache.put(hash, node);
         return node;
-    }
+   }
 }
 
 NodePtr Hashlife::centre(const NodePtr& m) {
@@ -200,16 +196,13 @@ void Hashlife::append_alive_cells(const NodePtr& node, std::vector<Cell>& output
     }
 
     int64_t size = 1 << (node->k);
-
     if (x + size <= min_x || x > max_x)
         return;
     if (y + size <= min_y || y > max_y)
         return;
 
     if (node->k == level) {
-        if ((node -> n) > 0) {
-            output.push_back({x, y});
-        }
+        output.push_back({x, y});
         return;
     }
 

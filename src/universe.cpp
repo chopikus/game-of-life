@@ -12,6 +12,10 @@ bool Cell::operator<(const Cell& other) const {
     return this->x < other.x;
 }
 
+bool Cell::operator==(const Cell& other) const {
+    return this->x == other.x && this->y == other.y;
+}
+
 Universe::Universe(const std::vector<Cell>& cells) {
     this->alive_cells_row = {};
     for (const auto& [x, y] : cells) {

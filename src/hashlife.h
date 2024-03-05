@@ -23,7 +23,7 @@ struct Node {
     Node(uint8_t k, 
          NodePtr a, NodePtr b, NodePtr c, NodePtr d,
          int64_t n,
-         uint64_t hash) : a(a), b(b), c(c), d(d) {};
+         uint64_t hash) : k(k), a(a), b(b), c(c), d(d), n(n), hash(hash) {};
 };
 
 class Hashlife {

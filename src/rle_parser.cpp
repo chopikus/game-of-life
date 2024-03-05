@@ -67,4 +67,3 @@ EMSCRIPTEN_BINDINGS(RleParser) {
         .function("add_chunk", &RleParser::add_chunk)
         .function("result", &RleParser::result);
 }
-
