@@ -74,11 +74,21 @@ TEST(Hashlife, glider_2_steps) {
     EXPECT_V_EQ(output, {{2, 1}, {0, 2}, {2, 2}, {1, 3}, {2, 3}});
 }
 
+TEST(Hashlife, glider_3_steps) {
+    Hashlife life{0, 0, {{1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}}};
+    life.rootSuccessor(1);
+    life.rootSuccessor(0);
+
+    std::vector<Cell> output;
+    life.append_alive_cells_root(output, 0, 0, 0, 100, 100);
+    EXPECT_V_EQ(output, {{1, 1}, {2, 2}, {3, 2}, {1, 3}, {2, 3}});
+}
+
 TEST(Hashlife, glider_4_steps) {
+    std::vector<Cell> output;
     Hashlife life{0, 0, {{1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}}};
     life.rootSuccessor(2);
 
-    std::vector<Cell> output;
     life.append_alive_cells_root(output, 0, 0, 0, 100, 100);
     EXPECT_V_EQ(output, {{2, 1}, {3, 2}, {1, 3}, {2, 3}, {3, 3}});
 }

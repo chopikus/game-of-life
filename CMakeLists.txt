@@ -16,7 +16,7 @@ FetchContent_MakeAvailable(googletest)
 
 #output executable
 add_definitions(-O3)
-file(GLOB SOURCES src/*.cpp)
+file(GLOB SOURCES src/*.cpp src/lib/uint256_t/uint128_t/*.cpp src/lib/uint256_t/*.cpp)
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/front/pkg)
 add_executable(backend ${SOURCES})
@@ -25,7 +25,7 @@ set_target_properties(backend PROPERTIES LINK_FLAGS "--bind -s TOTAL_MEMORY=1024
 #test target
 enable_testing()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
-file(GLOB TEST_SOURCES src/tests/*.cpp src/*.cpp)
+file(GLOB_RECURSE TEST_SOURCES src/tests/*.cpp src/*.cpp src/lib/uint256_t/uint128_t/*.cpp src/lib/uint256_t/*.cpp)
 add_executable(
   backend_test
   ${TEST_SOURCES}

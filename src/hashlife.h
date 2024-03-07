@@ -1,5 +1,6 @@
 #pragma once
 #include "lib/lrucache.hpp"
+#include "lib/uint256_t/uint256_t.h"
 #include "universe.h"
 
 #include <iostream>
@@ -18,12 +19,12 @@ struct Node {
     uint8_t k; // level
     std::shared_ptr<Node> a,b,c,d;
     int64_t n; /* number of on nodes */
-    uint64_t hash; // precomputed
+    uint256_t hash; // precomputed
 
     Node(uint8_t k, 
          NodePtr a, NodePtr b, NodePtr c, NodePtr d,
          int64_t n,
-         uint64_t hash) : k(k), a(a), b(b), c(c), d(d), n(n), hash(hash) {};
+         uint256_t hash);
 };
 
 class Hashlife {

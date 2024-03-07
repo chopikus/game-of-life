@@ -1,5 +1,11 @@
 #include "hashlife.h"
 
+Node::Node(uint8_t k, 
+           NodePtr a, NodePtr b, NodePtr c, NodePtr d,
+           int64_t n,
+           uint256_t hash) : 
+           k(k), a(a), b(b), c(c), d(d), n(n), hash(hash) {};
+
 using NodePtr = Hashlife::NodePtr;
 
 const NodePtr Hashlife::on = std::make_shared<Node>(0, nullptr, nullptr, 
@@ -55,7 +61,7 @@ Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active
 
     root = cur.begin()->second;
 
-    while (root->k < 10) {
+    while (root->k < 5) {
         fix_x += (1 << (root->k - 1));
         fix_y += (1 << (root->k - 1));
 
@@ -80,12 +86,14 @@ NodePtr Hashlife::get_zero(uint8_t k) {
 
 NodePtr Hashlife::join(const NodePtr& a, const NodePtr& b, 
                        const NodePtr& c, const NodePtr& d) {
-    uint64_t hash = a->k + 2;
-    hash += 1001933ull * a->hash;
-    hash += 2331061ull * b->hash;
-    hash += 6281573ull * c->hash;
-    hash += 4591507ull * d->hash;
-    hash &= 4294967295ull;
+    uint256_t hash = a->k * 784753ull;
+    hash += a->n + b->n + c->n + d->n;
+    hash += 616207 * a->hash;
+    hash += 990037 * b->hash;
+    hash += 599383 * c->hash;
+    hash += 482263 * d->hash;
+    hash %= uint256_t("69357405814261721070445825479705873401091456893429", 10);
+
    if (join_cache.exists(hash)) {
         return join_cache.get(hash);
    } else {
@@ -151,8 +159,9 @@ void Hashlife::rootSuccessor(uint8_t j) {
 }
 
 NodePtr Hashlife::successor(const NodePtr& m, uint8_t j) {
-    if (m->n == 0)
+    if (m->n == 0) {
         return m->a;
+    }
 
     if (m->k == 1)
         return m;
@@ -200,7 +209,6 @@ void Hashlife::append_alive_cells(const NodePtr& node, std::vector<Cell>& output
 
     /* return alive cells from (min_x, min_y) up to (max_x, max_y) included.*/
     /* (x, y) is the top-left point of node */
-
     if (node->n == 0) {
         return;
     }
