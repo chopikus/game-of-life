@@ -8,6 +8,8 @@ const NodePtr Hashlife::off = std::make_shared<Node>(0, nullptr, nullptr,
                                                      nullptr, nullptr, 0, 0);
 
 Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active_cells) {
+    fix_x = min_x;
+    fix_y = min_y;
     if (active_cells.empty())
     {
         root = off;
@@ -44,7 +46,6 @@ Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active
             NodePtr c = pop(x, y+1);
             NodePtr d = pop(x+1, y+1);
             NodePtr r = join(a, b, c, d);
-            std::cout << "r->n " << r->n << " " << a->n << " " << b->n << " " << c->n << " " << d->n << std::endl;
             next_level.insert({{x/2, y/2}, join(a,b,c,d)});
         }
         cur.clear();
@@ -53,6 +54,13 @@ Hashlife::Hashlife(int64_t min_x, int64_t min_y, const std::vector<Cell>& active
     }
 
     root = cur.begin()->second;
+
+    while (root->k < 10) {
+        fix_x += (1 << (root->k - 1));
+        fix_y += (1 << (root->k - 1));
+
+        root = centre(root);
+    }
 }
 
 NodePtr Hashlife::get_zero(uint8_t k) {
@@ -138,19 +146,21 @@ NodePtr Hashlife::life_4x4(const NodePtr& m) {
     return join(ab, bc, cb, da);
 }
 
-NodePtr Hashlife::rootSuccessor(uint8_t j) {
-    return successor(root, j);
+void Hashlife::rootSuccessor(uint8_t j) {
+    root = centre(successor(root, j));
 }
 
 NodePtr Hashlife::successor(const NodePtr& m, uint8_t j) {
     if (m->n == 0)
         return m->a;
+
     if (m->k == 1)
         return m;
+    
     if (m->k == 2)
         return life_4x4(m);
     
-    if (j >= m->k - 2)
+    if (j > m->k - 2)
         j = m->k - 2;
 
     auto c1 = successor(join(m->a->a, m->a->b, m->a->c, m->a->d), j);
@@ -200,9 +210,9 @@ void Hashlife::append_alive_cells(const NodePtr& node, std::vector<Cell>& output
         return;
     if (y + size <= min_y || y > max_y)
         return;
-
+    
     if (node->k == level) {
-        output.push_back({x, y});
+        output.push_back({x-fix_x, y-fix_y});
         return;
     }
 
@@ -217,5 +227,10 @@ void Hashlife::append_alive_cells_root(std::vector<Cell>& output,
                                         uint8_t level,
                                         int64_t min_x, int64_t min_y,
                                         int64_t max_x, int64_t max_y) {
+    min_x += fix_x;
+    min_y += fix_y;
+
+    max_x += fix_x;
+    max_y += fix_y;
     append_alive_cells(root, output, level, 0, 0, min_x, min_y, max_x, max_y);
 }
