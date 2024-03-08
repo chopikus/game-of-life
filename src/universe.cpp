@@ -1,20 +1,10 @@
 #include <algorithm>
-#include <emscripten/bind.h>
+//#include <emscripten/bind.h>
 #include "lib/json.hpp"
 #include "universe.h"
 #include <utility>
 
 #include <iostream>
-
-bool Cell::operator<(const Cell& other) const {
-    if (this->x == other.x)
-        return this->y < other.y;
-    return this->x < other.x;
-}
-
-bool Cell::operator==(const Cell& other) const {
-    return this->x == other.x && this->y == other.y;
-}
 
 Universe::Universe(const std::vector<Cell>& cells) {
     this->alive_cells_row = {};
@@ -99,10 +89,10 @@ std::string Universe::alive_cells_str() {
     return alive_cells().dump();
 }
 
-EMSCRIPTEN_BINDINGS(universe) {
+/*EMSCRIPTEN_BINDINGS(universe) {
     emscripten::class_<Universe>("Universe")
         .constructor<const std::vector<Cell>&>()
         .class_function("example", &Universe::example)
         .function("tick", &Universe::tick)
         .function("alive_cells_str", &Universe::alive_cells_str);
-}
+}*/

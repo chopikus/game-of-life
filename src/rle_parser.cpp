@@ -1,4 +1,4 @@
-#include <emscripten/bind.h>
+//#include <emscripten/bind.h>
 #include "rle_parser.h"
 #include <regex>
 #include <string>
@@ -61,9 +61,9 @@ Universe RleParser::result() {
     return Universe{alive_cells};
 }
 
-EMSCRIPTEN_BINDINGS(RleParser) {
+/*EMSCRIPTEN_BINDINGS(RleParser) {
     emscripten::class_<RleParser>("RleParser")
         .constructor<>()
         .function("add_chunk", &RleParser::add_chunk)
         .function("result", &RleParser::result);
-}
+}*/

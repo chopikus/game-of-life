@@ -5,14 +5,7 @@
 #include <string>
 #include <vector>
 #include "lib/json.hpp"
-
-struct Cell {
-    int64_t x;
-    int64_t y;
-
-    bool operator<(const Cell& other) const;
-    bool operator==(const Cell& other) const;
-};
+#include "units.h"
 
 class Universe {
     public:
