@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../universe.h"
+#include "../universe/universe.h"
 #include "../lib/json.hpp"
 
 class Glider : public ::testing::Test {

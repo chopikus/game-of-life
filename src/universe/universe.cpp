@@ -1,6 +1,6 @@
 #include <algorithm>
-//#include <emscripten/bind.h>
-#include "lib/json.hpp"
+#include <emscripten/bind.h>
+#include "../lib/json.hpp"
 #include "universe.h"
 #include <utility>
 
@@ -89,10 +89,10 @@ std::string Universe::alive_cells_str() {
     return alive_cells().dump();
 }
 
-/*EMSCRIPTEN_BINDINGS(universe) {
+EMSCRIPTEN_BINDINGS(universe) {
     emscripten::class_<Universe>("Universe")
         .constructor<const std::vector<Cell>&>()
         .class_function("example", &Universe::example)
         .function("tick", &Universe::tick)
         .function("alive_cells_str", &Universe::alive_cells_str);
-}*/
+}

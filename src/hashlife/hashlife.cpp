@@ -1,15 +1,12 @@
 #include "hashlife.h"
 
-const NodePtr Hashlife::on = std::make_shared<Node>(0, nullptr, nullptr, 
-                                                    nullptr, nullptr, 1, 1);
-const NodePtr Hashlife::off = std::make_shared<Node>(0, nullptr, nullptr, 
-                                                     nullptr, nullptr, 0, 0);
-
-
 Hashlife::Hashlife(const std::vector<Cell>& active_cells) {
+    _off = _allocator.new_node(0, nullptr, nullptr, nullptr, nullptr, 0, 0);
+    _on = _allocator.new_node(0, nullptr, nullptr, nullptr, nullptr, 1, 1);
+
     if (active_cells.empty())
     {
-        _root = off;
+        _root = _off;
         return;
     }
 
@@ -30,7 +27,7 @@ Hashlife::Hashlife(const std::vector<Cell>& active_cells) {
     /* The size of the world is 2^29, 
        computing up to 2^27 generations in one go.
        Last wrapping is used to compute successors. */
-    while (_root->k < 20) {
+    while (_root->k < 29) {
         _fix_x += (1 << (_root->k - 1));
         _fix_y += (1 << (_root->k - 1));
 
@@ -42,7 +39,7 @@ void Hashlife::_construct_root(int64_t min_x, int64_t min_y, const std::vector<C
     std::map<Cell, NodePtr> cur;
     for (auto c : active_cells) {
         /* changing coordinates so that all coordinates are >=0*/
-        cur.insert({Cell{c.x-min_x, c.y-min_y}, on});
+        cur.insert({Cell{c.x-min_x, c.y-min_y}, _on});
     }
 
     size_t k = 0;
@@ -82,7 +79,7 @@ void Hashlife::_construct_root(int64_t min_x, int64_t min_y, const std::vector<C
 
 NodePtr Hashlife::_get_zero(uint8_t k) {
     if (k == 0) {
-        return off;
+        return _off;
     }
     
     if (_zero_cache.exists(k))
@@ -95,8 +92,8 @@ NodePtr Hashlife::_get_zero(uint8_t k) {
     return result;
 }
 
-NodePtr Hashlife::_join(const NodePtr& a, const NodePtr& b, 
-                        const NodePtr& c, const NodePtr& d) {
+NodePtr Hashlife::_join(NodePtr a, NodePtr b, 
+                        NodePtr c, NodePtr d) {
     FourNodePtr t{a, b, c, d};
     if (_join_cache.exists(t)) {
         return _join_cache.get(t);
@@ -107,7 +104,7 @@ NodePtr Hashlife::_join(const NodePtr& a, const NodePtr& b,
         hash += 990037 * b->hash;
         hash += 599383 * c->hash;
         hash += 482263 * d->hash;
-        auto node = std::make_shared<Node>(
+        auto node = _allocator.new_node(
                         static_cast<uint8_t>(a->k + 1),
                         a,
                         b,
@@ -121,7 +118,7 @@ NodePtr Hashlife::_join(const NodePtr& a, const NodePtr& b,
     }
 }
 
-NodePtr Hashlife::_centre(const NodePtr& m) {
+NodePtr Hashlife::_centre(NodePtr m) {
     auto z = _get_zero(m->k - 1);
     return _join(_join(z, z, z, m->a),
                  _join(z, z, m->b, z),
@@ -130,24 +127,24 @@ NodePtr Hashlife::_centre(const NodePtr& m) {
 }
 
 NodePtr Hashlife::_life_3x3(
-    const NodePtr& a, const NodePtr& b, const NodePtr& c,
-    const NodePtr& d, const NodePtr& E, const NodePtr& f,
-    const NodePtr& g, const NodePtr& h, const NodePtr& i) {
+    NodePtr a, NodePtr b, NodePtr c,
+    NodePtr d, NodePtr E, NodePtr f,
+    NodePtr g, NodePtr h, NodePtr i) {
 
     int64_t outer_on_cells = a->n + b->n + c->n +
                              d->n + f->n +
                              g->n + h->n + i->n ;
 
     if ((outer_on_cells == 2 && E->n) || outer_on_cells == 3)
-        return on;
+        return _on;
     else
-        return off;
+        return _off;
 };
 
-NodePtr Hashlife::_life_4x4(const NodePtr& m) {
-    /*std::cout << "life_4x4" << std::endl;
+NodePtr Hashlife::_life_4x4(NodePtr m) {
+    
     if (_life_4x4_cache.exists(m))
-        return _life_4x4_cache.get(m);*/
+        return _life_4x4_cache.get(m);
     NodePtr ab = _life_3x3(m->a->a, m->a->b, m->b->a, 
                           m->a->c, m->a->d, m->b->c,
                           m->c->a, m->c->b, m->d->a);
@@ -165,7 +162,7 @@ NodePtr Hashlife::_life_4x4(const NodePtr& m) {
                           m->c->d, m->d->c, m->d->d);
 
     auto result = _join(ab, bc, cb, da);
-    //_life_4x4_cache.put(m, result);
+    _life_4x4_cache.put(m, result);
 
     return result;
 }
@@ -174,35 +171,34 @@ void Hashlife::successor(uint8_t j) {
     _root = _centre(_successor(_root, j));
 }
 
-NodePtr Hashlife::_successor(const NodePtr& m, uint8_t j) {
+NodePtr Hashlife::_successor(NodePtr m, uint8_t j) {
     if (m->n == 0) {
         return m->a;
     }
-    
-    if (_successor_cache.exists({m, j}))
-        return _successor_cache.get({m, j});
 
     if (m->k == 1)
         return m;
     
     if (m->k == 2) {
         auto result = _life_4x4(m);
-        _successor_cache.put({m, j}, result);
         return result;
     }
-    
+
     if (j > m->k - 2)
         j = m->k - 2;
 
-    auto c1 = _successor(_join(m->a->a, m->a->b, m->a->c, m->a->d), j);
+    if (_successor_cache.exists({m, j}))
+        return _successor_cache.get({m, j});
+    
+    auto c1 = _successor(m->a, j);
     auto c2 = _successor(_join(m->a->b, m->b->a, m->a->d, m->b->c), j);
-    auto c3 = _successor(_join(m->b->a, m->b->b, m->b->c, m->b->d), j);
+    auto c3 = _successor(m->b, j);
     auto c4 = _successor(_join(m->a->c, m->a->d, m->c->a, m->c->b), j);
     auto c5 = _successor(_join(m->a->d, m->b->c, m->c->b, m->d->a), j);
     auto c6 = _successor(_join(m->b->c, m->b->d, m->d->a, m->d->b), j);
-    auto c7 = _successor(_join(m->c->a, m->c->b, m->c->c, m->c->d), j);
+    auto c7 = _successor(m->c, j);
     auto c8 = _successor(_join(m->c->b, m->d->a, m->c->d, m->d->c), j);
-    auto c9 = _successor(_join(m->d->a, m->d->b, m->d->c, m->d->d), j);
+    auto c9 = _successor(m->d, j);
 
     if (j < m->k - 2) {
         auto result = _join(
@@ -225,7 +221,7 @@ NodePtr Hashlife::_successor(const NodePtr& m, uint8_t j) {
     };
 }
 
-void Hashlife::_append_alive_cells(const NodePtr& node, std::vector<Cell>& output,
+void Hashlife::_append_alive_cells(NodePtr node, std::vector<Cell>& output,
                                   uint8_t level, 
                                   int64_t x, int64_t y,
                                   int64_t min_x, int64_t min_y,

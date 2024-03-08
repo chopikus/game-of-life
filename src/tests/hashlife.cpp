@@ -1,7 +1,8 @@
+#include <algorithm>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <sstream>
-#include "../hashlife.h"
+#include "../hashlife/hashlife.h"
 
 void PrintTo(const Cell& cell, std::ostream* os) {
     *os << "(x=" << cell.x << ",y=" << cell.y << ")";
@@ -83,11 +84,11 @@ TEST(Hashlife, glider_4_steps) {
                 {{2, 1}, {3, 2}, {1, 3}, {2, 3}, {3, 3}});
 }
 
-TEST(Hashlife, glider_1000_steps_time) {
+TEST(Hashlife, glider_1048576_steps) {
     std::vector<Cell> output;
     Hashlife life{{{1, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}}};
-    life.successor(12);
-    std::cout << "successor cache size " << life._successor_cache.size() << std::endl;
-    std::cout << "join cache size " << life._join_cache.size() << std::endl;
-    //assert(false);
+    life.successor(20);
+    EXPECT_V_EQ(life.get_alive_cells(0, 0, 0, 1000000, 1000000), 
+                {{262145, 262144}, {262146, 262145}, {262144, 262146}, 
+                 {262145, 262146}, {262146, 262146}});
 }

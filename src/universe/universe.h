@@ -4,8 +4,8 @@
 #include <set>
 #include <string>
 #include <vector>
-#include "lib/json.hpp"
-#include "units.h"
+#include "../lib/json.hpp"
+#include "../units/units.h"
 
 class Universe {
     public:

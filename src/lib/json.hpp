@@ -3423,7 +3423,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
     /// @brief a minimal map-like container that preserves insertion order
     /// @sa https://json.nlohmann.me/api/ordered_map/
-    template<class Key, class T, class IgnoredLess, class Allocator>
+    template<class Key, class T, class IgnoredLess, class NodeAllocator>
     struct ordered_map;
 
     /// @brief specialization that maintains the insertion order of object keys
@@ -4774,9 +4774,9 @@ inline void from_json(const BasicJsonType& j, EnumType& e)
 #endif  // JSON_DISABLE_ENUM_SERIALIZATION
 
 // forward_list doesn't have an insert method
-template<typename BasicJsonType, typename T, typename Allocator,
+template<typename BasicJsonType, typename T, typename NodeAllocator,
          enable_if_t<is_getable<BasicJsonType, T>::value, int> = 0>
-inline void from_json(const BasicJsonType& j, std::forward_list<T, Allocator>& l)
+inline void from_json(const BasicJsonType& j, std::forward_list<T, NodeAllocator>& l)
 {
     if (JSON_HEDLEY_UNLIKELY(!j.is_array()))
     {
@@ -5043,10 +5043,10 @@ auto from_json(BasicJsonType&& j, TupleRelated&& t)
     return from_json_tuple_impl(std::forward<BasicJsonType>(j), std::forward<TupleRelated>(t), priority_tag<3> {});
 }
 
-template < typename BasicJsonType, typename Key, typename Value, typename Compare, typename Allocator,
+template < typename BasicJsonType, typename Key, typename Value, typename Compare, typename NodeAllocator,
            typename = enable_if_t < !std::is_constructible <
                                         typename BasicJsonType::string_t, Key >::value >>
-inline void from_json(const BasicJsonType& j, std::map<Key, Value, Compare, Allocator>& m)
+inline void from_json(const BasicJsonType& j, std::map<Key, Value, Compare, NodeAllocator>& m)
 {
     if (JSON_HEDLEY_UNLIKELY(!j.is_array()))
     {
@@ -5063,10 +5063,10 @@ inline void from_json(const BasicJsonType& j, std::map<Key, Value, Compare, Allo
     }
 }
 
-template < typename BasicJsonType, typename Key, typename Value, typename Hash, typename KeyEqual, typename Allocator,
+template < typename BasicJsonType, typename Key, typename Value, typename Hash, typename KeyEqual, typename NodeAllocator,
            typename = enable_if_t < !std::is_constructible <
                                         typename BasicJsonType::string_t, Key >::value >>
-inline void from_json(const BasicJsonType& j, std::unordered_map<Key, Value, Hash, KeyEqual, Allocator>& m)
+inline void from_json(const BasicJsonType& j, std::unordered_map<Key, Value, Hash, KeyEqual, NodeAllocator>& m)
 {
     if (JSON_HEDLEY_UNLIKELY(!j.is_array()))
     {
@@ -19030,12 +19030,12 @@ NLOHMANN_JSON_NAMESPACE_BEGIN
 /// ordered_map: a minimal map-like container that preserves insertion order
 /// for use within nlohmann::basic_json<ordered_map>
 template <class Key, class T, class IgnoredLess = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>>
-                  struct ordered_map : std::vector<std::pair<const Key, T>, Allocator>
+          class NodeAllocator = std::allocator<std::pair<const Key, T>>>
+                  struct ordered_map : std::vector<std::pair<const Key, T>, NodeAllocator>
 {
     using key_type = Key;
     using mapped_type = T;
-    using Container = std::vector<std::pair<const Key, T>, Allocator>;
+    using Container = std::vector<std::pair<const Key, T>, NodeAllocator>;
     using iterator = typename Container::iterator;
     using const_iterator = typename Container::const_iterator;
     using size_type = typename Container::size_type;
@@ -19049,11 +19049,11 @@ template <class Key, class T, class IgnoredLess = std::less<Key>,
     // Explicit constructors instead of `using Container::Container`
     // otherwise older compilers choke on it (GCC <= 5.5, xcode <= 9.4)
     ordered_map() noexcept(noexcept(Container())) : Container{} {}
-    explicit ordered_map(const Allocator& alloc) noexcept(noexcept(Container(alloc))) : Container{alloc} {}
+    explicit ordered_map(const NodeAllocator& alloc) noexcept(noexcept(Container(alloc))) : Container{alloc} {}
     template <class It>
-    ordered_map(It first, It last, const Allocator& alloc = Allocator())
+    ordered_map(It first, It last, const NodeAllocator& alloc = NodeAllocator())
         : Container{first, last, alloc} {}
-    ordered_map(std::initializer_list<value_type> init, const Allocator& alloc = Allocator() )
+    ordered_map(std::initializer_list<value_type> init, const NodeAllocator& alloc = NodeAllocator() )
         : Container{init, alloc} {}
 
     std::pair<iterator, bool> emplace(const key_type& key, T&& t)

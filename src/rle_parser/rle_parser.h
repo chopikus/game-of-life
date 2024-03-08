@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "universe.h"
+#include "../units/units.h"
+#include "../universe/universe.h"
 
 class RleParser {
     public:

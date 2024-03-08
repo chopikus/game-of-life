@@ -1,7 +1,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <sstream>
-#include "../rle_parser.h"
+#include "../rle_parser/rle_parser.h"
 #include "mock/rle.h"
 
 TEST(RleParser, glider) {
