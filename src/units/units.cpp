@@ -1,5 +1,13 @@
 #include "units.h"
 
+bool Node::n() const {
+    return kn & (1 << 7);
+}
+
+uint8_t Node::k() const {
+    return kn & ((1 << 7) - 1);
+}
+
 std::size_t NodePtrHash::operator()(NodePtr t) const {
     return t->hash;
 }

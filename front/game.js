@@ -34,7 +34,7 @@ function cellCoordsToScreen(x, y) {
 }
 
 let lastTimeDrawn = Date.now();
-let fps = 30;
+let fps = 20;
 let alive_cells;
 
 function gameCycle() {
@@ -43,7 +43,7 @@ function gameCycle() {
     let delta = now - lastTimeDrawn;
     if (delta > 1000 / fps) {
         if (!isPaused)
-            universe.tick(200);
+            universe.tick(2048);
         
         let w = ctx.canvas.width / scale;
         let h = ctx.canvas.height / scale;

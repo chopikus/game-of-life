@@ -15,16 +15,18 @@ struct Node {
       |C  D|
       \___/
     */
-    uint8_t k; // level
-    Node *a,*b,*c,*d;
-    int64_t n; /* number of on nodes */
+    uint8_t kn; // first bit n, rest bits -- k
+    std::shared_ptr<Node> a,b,c,d;
     uint64_t hash; // precomputed
 
     auto operator<=>(const Node&) const = default;
+    
+    uint8_t k() const;
+    bool n() const;
 };
 
 
-using NodePtr = Node*;
+using NodePtr = std::shared_ptr<Node>;
 using NodePtrAndStep = std::pair<NodePtr, uint8_t>;
 using FourNodePtr = std::tuple<NodePtr, NodePtr, NodePtr, NodePtr>;
 

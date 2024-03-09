@@ -27,9 +27,9 @@ Hashlife::Hashlife(const std::vector<Cell>& alive_cells) {
     /* The size of the world is 2^29, 
        computing up to 2^27 generations in one go.
        Last wrapping is used to compute successors. */
-    while (_root->k < 29) {
-        _fix_x += (1 << (_root->k - 1));
-        _fix_y += (1 << (_root->k - 1));
+    while (_root->k() < 29) {
+        _fix_x += (1 << (_root->k() - 1));
+        _fix_y += (1 << (_root->k() - 1));
 
         _root = _centre(_root);
     }
@@ -92,24 +92,24 @@ NodePtr Hashlife::_get_zero(uint8_t k) {
     return result;
 }
 
-NodePtr Hashlife::_join(NodePtr a, NodePtr b, 
-                        NodePtr c, NodePtr d) {
+NodePtr Hashlife::_join(const NodePtr& a, const NodePtr& b, 
+                        const NodePtr& c, const NodePtr& d) {
     FourNodePtr t{a, b, c, d};
     if (_join_cache.exists(t)) {
         return _join_cache.get(t);
     } else {
-        uint64_t hash = a->k * 784753ull;
+        uint64_t hash = a->k() * 784753ull;
         hash += 616207 * a->hash;
         hash += 990037 * b->hash;
         hash += 599383 * c->hash;
         hash += 482263 * d->hash;
         auto node = _allocator.new_node(
-                        static_cast<uint8_t>(a->k + 1),
+                        static_cast<uint8_t>(a->k() + 1),
                         a,
                         b,
                         c,
                         d,
-                        a->n + b->n + c->n + d->n,
+                        a->n() | b->n() | c->n() | d->n(),
                         hash
                     );
         _join_cache.put(t, node);
@@ -117,8 +117,8 @@ NodePtr Hashlife::_join(NodePtr a, NodePtr b,
     }
 }
 
-NodePtr Hashlife::_centre(NodePtr m) {
-    auto z = _get_zero(m->k - 1);
+NodePtr Hashlife::_centre(const NodePtr& m) {
+    auto z = _get_zero(m->k() - 1);
     return _join(_join(z, z, z, m->a),
                  _join(z, z, m->b, z),
                  _join(z, m->c, z, z),
@@ -126,21 +126,21 @@ NodePtr Hashlife::_centre(NodePtr m) {
 }
 
 NodePtr Hashlife::_life_3x3(
-    NodePtr a, NodePtr b, NodePtr c,
-    NodePtr d, NodePtr E, NodePtr f,
-    NodePtr g, NodePtr h, NodePtr i) {
+    const NodePtr& a, const NodePtr& b, const NodePtr& c,
+    const NodePtr& d, const NodePtr& E, const NodePtr& f,
+    const NodePtr& g, const NodePtr& h, const NodePtr& i) {
 
-    int64_t outer_on_cells = a->n + b->n + c->n +
-                             d->n + f->n +
-                             g->n + h->n + i->n ;
+    int64_t outer_on_cells = a->n() + b->n() + c->n() +
+                             d->n() + f->n() +
+                             g->n() + h->n() + i->n() ;
 
-    if ((outer_on_cells == 2 && E->n) || outer_on_cells == 3)
+    if ((outer_on_cells == 2 && E->n()) || outer_on_cells == 3)
         return _on;
     else
         return _off;
 };
 
-NodePtr Hashlife::_life_4x4(NodePtr m) {
+NodePtr Hashlife::_life_4x4(const NodePtr& m) {
     
     if (_life_4x4_cache.exists(m))
         return _life_4x4_cache.get(m);
@@ -171,20 +171,20 @@ void Hashlife::successor(uint8_t j) {
 }
 
 NodePtr Hashlife::_successor(NodePtr m, uint8_t j) {
-    if (m->n == 0) {
+    if (!m->n()) {
         return m->a;
     }
 
-    if (m->k == 1)
+    if (m->k() == 1)
         return m;
     
-    if (m->k == 2) {
+    if (m->k() == 2) {
         auto result = _life_4x4(m);
         return result;
     }
 
-    if (j > m->k - 2)
-        j = m->k - 2;
+    if (j > m->k() - 2)
+        j = m->k() - 2;
 
     if (_successor_cache.exists({m, j}))
         return _successor_cache.get({m, j});
@@ -199,7 +199,7 @@ NodePtr Hashlife::_successor(NodePtr m, uint8_t j) {
     auto c8 = _successor(_join(m->c->b, m->d->a, m->c->d, m->d->c), j);
     auto c9 = _successor(m->d, j);
 
-    if (j < m->k - 2) {
+    if (j < m->k() - 2) {
         auto result = _join(
                            _join(c1->d, c2->c, c4->b, c5->a),
                            _join(c2->d, c3->c, c5->b, c6->a),
@@ -220,7 +220,7 @@ NodePtr Hashlife::_successor(NodePtr m, uint8_t j) {
     };
 }
 
-void Hashlife::_append_alive_cells(NodePtr node, std::vector<Cell>& output,
+void Hashlife::_append_alive_cells(const NodePtr& node, std::vector<Cell>& output,
                                   uint8_t level, 
                                   int64_t x, int64_t y,
                                   int64_t min_x, int64_t min_y,
@@ -228,17 +228,17 @@ void Hashlife::_append_alive_cells(NodePtr node, std::vector<Cell>& output,
 
     /* return alive cells from (min_x, min_y) up to (max_x, max_y) included.*/
     /* (x, y) is the top-left point of node */
-    if (node->n == 0) {
+    if (!node->n()) {
         return;
     }
 
-    int64_t size = 1 << (node->k);
+    int64_t size = 1 << (node->k());
     if (x + size <= min_x || x > max_x)
         return;
     if (y + size <= min_y || y > max_y)
         return;
     
-    if (node->k == level) {
+    if (node->k() == level) {
         output.push_back({x-_fix_x, y-_fix_y});
         return;
     }
