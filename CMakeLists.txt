@@ -20,7 +20,7 @@ file(GLOB SOURCES src/hashlife/*.cpp src/rle_parser/*.cpp src/units/*.cpp src/un
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/front/pkg)
 add_executable(backend ${SOURCES})
-set_target_properties(backend PROPERTIES LINK_FLAGS "--bind -s TOTAL_MEMORY=1024MB -s WASM=1 -s EXPORT_NAME=\"'backend'\"")
+set_target_properties(backend PROPERTIES LINK_FLAGS "--bind -s TOTAL_MEMORY=2048MB -s WASM=1 -s EXPORT_NAME=\"'backend'\" -s WASM_BIGINT")
 
 #test target
 enable_testing()
@@ -31,7 +31,7 @@ add_executable(
   ${TEST_SOURCES}
 )
 
-target_link_options(backend_test PRIVATE --bind -s TOTAL_MEMORY=1024MB --profiling)
+target_link_options(backend_test PRIVATE --bind -s TOTAL_MEMORY=2048MB --profiling)
 target_link_libraries(
   backend_test
   GTest::gtest_main

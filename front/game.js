@@ -29,21 +29,27 @@ function addPan() {
 }
 
 function cellCoordsToScreen(x, y) {
-    return {x: (x - viewX) * scale, 
-            y: (y - viewY) * scale};
+    return {x: (Number(x) - viewX) * scale, 
+            y: (Number(y) - viewY) * scale};
 }
 
 let lastTimeDrawn = Date.now();
-let fps = 5;
+let fps = 30;
 let alive_cells;
 
 function gameCycle() {
     let interval = 1000/fps;
     let now = Date.now();
     let delta = now - lastTimeDrawn;
-    if (delta > 1000 / fps && !isPaused) {
-        universe.tick();
-        alive_cells = universe.alive_cells_str();
+    if (delta > 1000 / fps) {
+        if (!isPaused)
+            universe.tick(200);
+        
+        let w = ctx.canvas.width / scale;
+        let h = ctx.canvas.height / scale;
+        if (alive_cells)
+            alive_cells.delete();
+        alive_cells = universe.get_alive_cells(scale, viewX, viewY, viewX + w, viewY + h);
         draw();
         lastTimeDrawn = now - (delta % interval);
     }
@@ -91,20 +97,19 @@ function drawCells() {
     ctx.fillStyle = "#ffffff";
     let drawScale = Math.max(1, scale);
     if (alive_cells) {
-        let parsed_response = JSON.parse(alive_cells);
-        parsed_response.forEach((cell) => {
+        for (var i = 0; i < alive_cells.size(); i++) {
+            let cell = alive_cells.get(i);
             let {x, y} = cellCoordsToScreen(cell.x, cell.y);
             x = Math.floor(x);
             y = Math.floor(y);
             ctx.fillRect(x, y, drawScale, drawScale);
-            ctx.closePath();    
-        });
+            ctx.closePath();  
+        }
     }
 }
 
 let isPaused = false;
 function onPausePlay() {
-   console.log("hello");
    if (!isPaused) {
         isPaused = true;
         document.getElementById("game-pause-play-button").innerText = "▶";

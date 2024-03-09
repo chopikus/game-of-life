@@ -17,8 +17,8 @@ class Hashlife {
       computes result for block of 2^(n-1) in the center, 
       2^(n-2) steps forward. */
    public:
-   Hashlife(const std::vector<Cell>& active_cells);
-   void _construct_root(int64_t min_x, int64_t min_y, const std::vector<Cell>& active_cells);
+   Hashlife(const std::vector<Cell>& alive_cells);
+   void _construct_root(int64_t min_x, int64_t min_y, const std::vector<Cell>& alive_cells);
 
    /* returns a node from nodes a,b,c,d (cached)*/
    NodePtr _join(NodePtr a, NodePtr b, NodePtr c, NodePtr d);
@@ -84,8 +84,8 @@ class Hashlife {
    int64_t _fix_y{0};
 
    cache::lru_cache<uint8_t, NodePtr> _zero_cache{100};
-   cache::lru_cache<FourNodePtr, NodePtr, FourNodePtrHash> _join_cache{5000000};
-   cache::lru_cache<NodePtrAndStep, NodePtr, NodePtrAndStepHash> _successor_cache{5000000};
+   cache::lru_cache<FourNodePtr, NodePtr, FourNodePtrHash> _join_cache{10000000};
+   cache::lru_cache<NodePtrAndStep, NodePtr, NodePtrAndStepHash> _successor_cache{10000000};
    cache::lru_cache<NodePtr, NodePtr, NodePtrHash> _life_4x4_cache{100};
 
    NodeAllocator _allocator{};

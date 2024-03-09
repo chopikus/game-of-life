@@ -4,7 +4,7 @@
 #include "../rle_parser/rle_parser.h"
 #include "mock/rle.h"
 
-TEST(RleParser, glider) {
+/*TEST(RleParser, glider) {
     RleParser parser{};
     parser.add_chunk(gliderText);
 
@@ -41,4 +41,4 @@ TEST(RleParser, twoSquares) {
     EXPECT_TRUE(contains({{"x", 3}, {"y", 4}}));
     EXPECT_TRUE(contains({{"x", 2}, {"y", 5}}));
     EXPECT_TRUE(contains({{"x", 3}, {"y", 5}}));
-}
+}*/

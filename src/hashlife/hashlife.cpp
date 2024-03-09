@@ -1,25 +1,25 @@
 #include "hashlife.h"
 
-Hashlife::Hashlife(const std::vector<Cell>& active_cells) {
+Hashlife::Hashlife(const std::vector<Cell>& alive_cells) {
     _off = _allocator.new_node(0, nullptr, nullptr, nullptr, nullptr, 0, 0);
     _on = _allocator.new_node(0, nullptr, nullptr, nullptr, nullptr, 1, 1);
 
-    if (active_cells.empty())
+    if (alive_cells.empty())
     {
         _root = _off;
         return;
     }
 
-    int64_t min_x = active_cells[0].x;
-    int64_t min_y = active_cells[0].y;
-    for (auto c : active_cells) {
+    int64_t min_x = alive_cells[0].x;
+    int64_t min_y = alive_cells[0].y;
+    for (auto c : alive_cells) {
         if (c.x < min_x)
             min_x = c.x;
         if (c.y < min_y)
             min_y = c.y;    
     }
 
-    _construct_root(min_x, min_y, active_cells);
+    _construct_root(min_x, min_y, alive_cells);
 
     _fix_x = min_x;
     _fix_y = min_y;
@@ -35,9 +35,9 @@ Hashlife::Hashlife(const std::vector<Cell>& active_cells) {
     }
 }
 
-void Hashlife::_construct_root(int64_t min_x, int64_t min_y, const std::vector<Cell>& active_cells) {
+void Hashlife::_construct_root(int64_t min_x, int64_t min_y, const std::vector<Cell>& alive_cells) {
     std::map<Cell, NodePtr> cur;
-    for (auto c : active_cells) {
+    for (auto c : alive_cells) {
         /* changing coordinates so that all coordinates are >=0*/
         cur.insert({Cell{c.x-min_x, c.y-min_y}, _on});
     }
@@ -99,7 +99,6 @@ NodePtr Hashlife::_join(NodePtr a, NodePtr b,
         return _join_cache.get(t);
     } else {
         uint64_t hash = a->k * 784753ull;
-        hash += a->n + b->n + c->n + d->n;
         hash += 616207 * a->hash;
         hash += 990037 * b->hash;
         hash += 599383 * c->hash;
