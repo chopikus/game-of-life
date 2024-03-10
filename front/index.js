@@ -5,7 +5,15 @@ let chosen_file;
 let play_button;
 let rle_parser = new backend.RleParser();
 
+function setLoading() {
+    document.getElementById("loading").hidden = false;
+    document.getElementById("menu").hidden = true;
+    document.getElementById("canvas").hidden = true; 
+    document.getElementById("game-menu").hidden = true; 
+}
+
 function onPlay() {
+    setLoading();
     let file = chosen_file;
     let r = new FileReader();
     const chunk_size = 1024 * 1024;
