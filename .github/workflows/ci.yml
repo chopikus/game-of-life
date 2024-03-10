@@ -10,17 +10,11 @@ jobs:
       - name: Verify
         run: emcc -v
       - uses: actions/checkout@v2
-      - name: "create and enter build dir"
+      - name: "test"
         run: |
           mkdir build
           cd build
-      - name: "ls"
-        run: |
-            ls -R ..
-      - name: "run emcmake "
-        run: emcmake cmake ..
-      - name: "run make " 
-        run: make
-      - name: "run make test"
-        run: make test
+          emcmake cmake ..
+          make -j8
+          make test
 
