@@ -14,6 +14,9 @@ jobs:
         run: |
           mkdir build
           cd build
+      - name: "ls"
+        run: |
+            ls ..
       - name: "run emcmake "
         run: emcmake cmake ..
       - name: "run make " 
