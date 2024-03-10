@@ -16,7 +16,7 @@ jobs:
           cd build
       - name: "ls"
         run: |
-            ls ..
+            ls -R ..
       - name: "run emcmake "
         run: emcmake cmake ..
       - name: "run make " 
