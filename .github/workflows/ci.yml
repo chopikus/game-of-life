@@ -38,7 +38,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './game-of-life/front/'
+          path: './game-of-life/game-of-life/front/'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
