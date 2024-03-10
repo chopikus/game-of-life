@@ -84,8 +84,8 @@ class Hashlife {
    int64_t _fix_y{0};
 
    cache::lru_cache<uint8_t, NodePtr> _zero_cache{100};
-   cache::lru_cache<FourNodePtr, NodePtr, FourNodePtrHash> _join_cache{5000000};
-   cache::lru_cache<NodePtrAndStep, NodePtr, NodePtrAndStepHash> _successor_cache{5000000};
+   cache::lru_cache<FourNodePtr, NodePtr, FourNodePtrHash> _join_cache{6000000};
+   cache::lru_cache<NodePtrAndStep, NodePtr, NodePtrAndStepHash> _successor_cache{6000000};
    cache::lru_cache<NodePtr, NodePtr, NodePtrHash> _life_4x4_cache{100};
 
    NodeAllocator _allocator{};

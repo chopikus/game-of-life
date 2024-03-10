@@ -1,10 +1,11 @@
-let backend = globalThis.backend;
-
 let viewX = 0;
 let viewY = 0;
 let scale = 50;
 let ctx;
 let universe;
+let lastTimeDrawn = Date.now();
+let alive_cells;
+let speed = 0; // log2 of speed is stored
 
 function addPan() { 
     let mouseStart = null;
@@ -33,25 +34,34 @@ function cellCoordsToScreen(x, y) {
             y: (Number(y) - viewY) * scale};
 }
 
-let lastTimeDrawn = Date.now();
-let fps = 20;
-let alive_cells;
-
+let frame_number = 0;
+let log2fps = 5;
 function gameCycle() {
+    let fps = 1 << log2fps;
     let interval = 1000/fps;
     let now = Date.now();
     let delta = now - lastTimeDrawn;
-    if (delta > 1000 / fps) {
+    if (delta > interval) {
+        frame_number += 1;
+        frame_number %= fps;
         if (!isPaused)
-            universe.tick(2048);
+        {
+            if (speed > log2fps)
+                universe.tick(speed - log2fps);
+            else {
+                if (frame_number % (1 << (log2fps-speed)) == 0)
+                    universe.tick(0);
+            }
+        }
         
         let w = ctx.canvas.width / scale;
         let h = ctx.canvas.height / scale;
-        if (alive_cells)
-            alive_cells.delete();
-        alive_cells = universe.get_alive_cells(scale, viewX, viewY, viewX + w, viewY + h);
+        
+        alive_cells = universe.get_alive_cells_val(scale, viewX, viewY, viewX + w, viewY + h);
         draw();
-        lastTimeDrawn = now - (delta % interval);
+        lastTimeDrawn = Date.now() - delta;
+        if (Date.now() - now > 1.2 * interval)
+            fps = Math.max(log2fps - 1, 1);
     }
     requestAnimationFrame(gameCycle);
 }
@@ -95,11 +105,12 @@ function drawGrid() {
 
 function drawCells() {
     ctx.fillStyle = "#ffffff";
-    let drawScale = Math.max(1, scale);
+    let drawScale = Math.max(2, scale);
     if (alive_cells) {
-        for (var i = 0; i < alive_cells.size(); i++) {
-            let cell = alive_cells.get(i);
-            let {x, y} = cellCoordsToScreen(cell.x, cell.y);
+        for (var i = 0; i < alive_cells.length / 2; i++) {
+            let cell_x = alive_cells[i*2];
+            let cell_y = alive_cells[i*2+1];
+            let {x, y} = cellCoordsToScreen(cell_x, cell_y);
             x = Math.floor(x);
             y = Math.floor(y);
             ctx.fillRect(x, y, drawScale, drawScale);
@@ -108,14 +119,37 @@ function drawCells() {
     }
 }
 
-let isPaused = false;
+function startGame(parsedUniverse) {
+    universe = parsedUniverse;
+    addGameMenuListeners();
+    fixCanvas();
+    addPan();
+    showGame();
+    requestAnimationFrame(gameCycle);
+}
+
+
+function setSpeedText() {
+    let s = "paused";
+    if (!isPaused) {
+        if (speed < 5)
+            s = String(Math.pow(2, speed)) + " gen/s";
+        else
+            s = "(2 ^ " + String(speed) + ") gen/s";
+    }
+    document.getElementById("speed-text").innerText = s;
+}
+
+let isPaused = true;
 function onPausePlay() {
    if (!isPaused) {
         isPaused = true;
-        document.getElementById("game-pause-play-button").innerText = "▶";
+        document.getElementById("game-pause-play-button").style.backgroundImage = "url(img/play-button.png)";
+        setSpeedText();
    } else {
         isPaused = false;
-        document.getElementById("game-pause-play-button").innerText = "||";
+        document.getElementById("game-pause-play-button").style.backgroundImage = "url(img/pause-button.png)";
+        setSpeedText();
    }
 }
 
@@ -141,13 +175,29 @@ function onZoomIn() {
     document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
 }
 
+function onSlowDown() {
+    if (speed > 0)
+        speed -= 1;
+    if (speed == 0)
+        document.getElementById("game-slow-down-button").disabled = true;
+    setSpeedText();
+}
+
+function onSpeedUp() {
+    speed += 1;
+    document.getElementById("game-slow-down-button").disabled = false;
+    setSpeedText();
+}
+
 function addGameMenuListeners() {
     document.getElementById("game-pause-play-button").addEventListener('click', onPausePlay);
     document.getElementById("game-zoom-out-button").addEventListener('click', onZoomOut);
     document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
+    document.getElementById("game-slow-down-button").addEventListener('click', onSlowDown);
+    document.getElementById("game-speed-up-button").addEventListener('click', onSpeedUp);
 }
 
-function fixCanvasResizing() {
+function fixCanvas() {
     const canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
@@ -160,16 +210,11 @@ function fixCanvasResizing() {
     resizeCanvas();
 }
 
-function startGame(parsedUniverse) {
-    universe = parsedUniverse;
+function showGame() {
     document.getElementById("loading").hidden = true;
     document.getElementById("menu").hidden = true;
     document.getElementById("canvas").hidden = false; 
     document.getElementById("game-menu").hidden = false;
-    addGameMenuListeners();
-    fixCanvasResizing();
-    addPan();
-    requestAnimationFrame(gameCycle);
 }
 
 export {startGame};

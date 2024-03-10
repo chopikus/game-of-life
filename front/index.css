@@ -16,20 +16,35 @@ html, body, #menu, #bg { width:100%; height:100%; margin: 0; padding: 0; overflo
 #game-menu {
     position: absolute;
     left: 20px;
-    bottom: 80px;
-    height: 0px;
-    overflow:visible;
-    background:none !important;
+    bottom: 0px;
+    width: 300px;
     z-index: 2;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
 }
 
-#game-zoom-in-button, #game-pause-play-button, #game-zoom-out-button {
-    font-size: 30px;
+#game-zoom-in-button, #game-zoom-out-button,
+#game-slow-down-button, #game-speed-up-button,
+#game-pause-play-button {
     height: 50px;
     width: 50px;
     border-radius: 50%;
+    background-size: 100%;
     background-color: blue;
+}
+
+#game-zoom-in-button { background-image: url('img/zoom-in.png') }
+#game-zoom-out-button { background-image: url('img/zoom-out.png') }
+#game-speed-up-button { background-image: url('img/fast-forward.png') }
+#game-slow-down-button { background-image: url('img/rewind.png') }
+#game-pause-play-button { background-image: url('img/play-button.png') }
+
+#speed-text {
+    background-color: blue;
+    font-size: 20px;
     color: white;
+    font-family: game-font;
 }
 
 #menu, #loading {

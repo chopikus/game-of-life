@@ -20,20 +20,25 @@ std::vector<Cell> Universe::get_alive_cells(double scale, double min_x, double m
     return life.get_alive_cells(i_scale, i_min_x, i_min_y, i_max_x, i_max_y);
 }
 
-void Universe::tick(int speed) {
-    int j = 0;
-    while (speed > 0) {
-        if (speed % 2 == 1)
-            life.successor(j);
-        speed /= 2;
-        j += 1;
+emscripten::val Universe::get_alive_cells_val(double scale, double min_x, double min_y, double max_x, double max_y) {
+    std::vector<Cell> res{std::move(get_alive_cells(scale, min_x, min_y, max_x, max_y))};
+    raw_bytes.clear();
+    raw_bytes.reserve(res.size() * 2);
+    for (size_t i=0; i<res.size(); i++) {
+        raw_bytes.push_back(res[i].x);
+        raw_bytes.push_back(res[i].y);
     }
+    return emscripten::val(emscripten::typed_memory_view(raw_bytes.size(), raw_bytes.data()));
+}
+
+void Universe::tick(int speed) {
+    life.successor(speed);
 }
 
 EMSCRIPTEN_BINDINGS(universe) {
     emscripten::class_<Universe>("Universe")
         .constructor<const std::vector<Cell>&>()
-        .function("get_alive_cells", &Universe::get_alive_cells)
+        .function("get_alive_cells_val", &Universe::get_alive_cells_val)
         .function("tick", &Universe::tick);
 
     emscripten::value_object<Cell>("Cell")
