@@ -2,29 +2,10 @@
 
 https://github.com/chopikus/game-of-life/assets/67230858/377841fd-7966-495f-a2ac-a4af830d0fb7
 
-
-Small implementation of [Conway's Game of life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
-
-This project relies on [WebAssembly](https://webassembly.org/) and [Emscripten](https://emscripten.org/).
-
-Computation of a grid is done in C++; visualization is in written in JavaScript (`front` folder).
-
-This implementation is largely inspired from [this](https://johnhw.github.io/hashlife/index.md.html) amazing explanation made by [johnhw](https://github.com/johnhw)!
-
-[cpp-lru-cache](https://github.com/lamerman/cpp-lru-cache) is used in this implementation (Copyright (c) 2014, lamerman)
-
-
-## Structure
-* `src` -- C++ backend;
-* `src/tests` -- C++ backend tests;
-* `src/lib` -- libraries needed for C++ backend;
-* `front/` -- JS frontend;
-* `front/pkg` -- Emscripten output of C++ backend.
-
-Frontend scripts are executed in the following order:
-1. `front/wasm_loader.js` -- loads emscripten output on page loading;
-2. `front/pkg/backend.js`;
-3. `front/index.js`; (dynamically added from `front/wasm_loader.js`)
+## Usage
+0. Download any pattern in .rle format. A few examples are [here](https://github.com/chopikus/game-of-life/tree/main/rle_examples).
+1. Open [https://chopikus.github.io/game-of-life/](https://chopikus.github.io/game-of-life/), choose any .rle pattern.
+2. Enjoy your pattern simulation!
 
 ## Steps to build and run locally
 0. Install [emsdk](https://github.com/emscripten-core/emsdk).
@@ -35,3 +16,8 @@ Frontend scripts are executed in the following order:
 5. `make test` -- tests C++ backend;
 6. `cd ../front`.
 7. Run local server from the current folder. Example: `basic-http-server .`
+
+## Helpful projects
+This implementation is largely inspired from [this](https://johnhw.github.io/hashlife/index.md.html) amazing explanation made by [johnhw](https://github.com/johnhw)!
+
+[cpp-lru-cache](https://github.com/lamerman/cpp-lru-cache) is used in this implementation (Copyright (c) 2014, lamerman)
