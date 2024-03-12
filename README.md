@@ -1,6 +1,6 @@
 # game-of-life
 
-https://github.com/chopikus/game-of-life/assets/67230858/377841fd-7966-495f-a2ac-a4af830d0fb7
+https://github.com/chopikus/game-of-life/assets/67230858/af7350b7-7e39-4b81-b7f8-af6c471d8eeb
 
 ## Usage
 0. Download any pattern in .rle format. A few examples are [here](https://github.com/chopikus/game-of-life/tree/main/rle_examples).
