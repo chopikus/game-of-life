@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cmath>
 #include <emscripten/bind.h>
-#include "../lib/json.hpp"
 #include "universe.h"
 #include <utility>
 

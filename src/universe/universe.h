@@ -5,7 +5,6 @@
 #include <set>
 #include <string>
 #include <vector>
-#include "../lib/json.hpp"
 #include "../units/units.h"
 #include "../hashlife/hashlife.h"
 
@@ -23,5 +22,5 @@ class Universe {
 
     private:
     Hashlife life;
-    std::vector<uint32_t> raw_bytes;
+    std::vector<int32_t> raw_bytes;
 };
