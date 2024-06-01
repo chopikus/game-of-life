@@ -1,5 +1,7 @@
 # game-of-life
 
+**The explanation blog can be found here:** https://chopikus.github.io/game-of-life-explanation/
+
 https://github.com/chopikus/game-of-life/assets/67230858/af7350b7-7e39-4b81-b7f8-af6c471d8eeb
 
 ## Usage
