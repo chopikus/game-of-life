@@ -39,7 +39,7 @@ function cellCoordsToScreen(x, y) {
 function makeTick() {
     frame_number += 1;
     frame_number %= (1 << log2fps);
-    
+
     if (!isPaused)
     {
         if (log2speed > log2fps) {
@@ -53,25 +53,25 @@ function makeTick() {
         else {
             /* Suppose the speed is 2gen/s, framerate is 32gen/s. */
             /* Then we need to tick 1gen forward every 16'th frame */
-            if (frame_number % (1 << (log2fps-log2speed)) == 0)
+            if (frame_number % (1 << (log2fps-log2speed)) == 0) {
                 universe.tick(0);
+            }
         }
     }
 }
 
 function gameCycle() {
     let interval = 1000/(1 << log2fps);
-    let now = Date.now();
-    let delta = now - lastTimeDrawn;
-    if (delta > interval) {
+    let frameStart = Date.now();
+    if (frameStart - lastTimeDrawn > interval) {
         makeTick();
         
         let w = ctx.canvas.width / scale;
         let h = ctx.canvas.height / scale;
         alive_cells = universe.get_alive_cells_val(scale, viewX, viewY, viewX + w, viewY + h);
         draw();
-        lastTimeDrawn = Date.now() - delta;
-        if (Date.now() - now > 1.2 * interval)
+        lastTimeDrawn = Date.now();
+        if (lastTimeDrawn - frameStart > 1.2 * interval)
             log2fps = Math.max(log2fps - 1, 1);
     }
     requestAnimationFrame(gameCycle);
