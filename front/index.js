@@ -14,29 +14,13 @@ function setLoading() {
 
 function onPlay() {
     setLoading();
-    let file = chosen_file;
-    let r = new FileReader();
-    const chunk_size = 1024 * 1024;
-    let blobs = [];
-    for (let i = 0; i < Math.ceil(file.size / chunk_size); i+=1) {
-        let start = i * chunk_size;
-        let end = Math.min((i+1) * chunk_size, file.size);
-        blobs.push(file.slice(start, end));
-    }
-    
-    function readBlob(i) {
-        if (i >= blobs.length) {
-            startGame(rle_parser.result());
-            return;
-        }
-        const reader = new FileReader();
-        reader.addEventListener("load", () => {
-            rle_parser.add_chunk(reader.result);
-            readBlob(i+1);
-        });
-        reader.readAsText(blobs[i]);
-    }
-    readBlob(0);
+
+    let reader = new FileReader();
+    reader.addEventListener("load", ()=>{
+        rle_parser.read(reader.result);
+        startGame(rle_parser.result());
+    })
+    reader.readAsText(chosen_file);
 }
 
 function onInputChange(e) {

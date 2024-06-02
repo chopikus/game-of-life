@@ -6,7 +6,7 @@
 
 TEST(RleParser, glider) {
     RleParser parser{};
-    parser.add_chunk(gliderText);
+    parser.read(gliderText);
 
     Universe glider{parser.result()};
 
@@ -24,7 +24,7 @@ TEST(RleParser, glider) {
 
 TEST(RleParser, twoSquares) {
     RleParser parser{};
-    parser.add_chunk(twoSquaresText);
+    parser.read(twoSquaresText);
 
     Universe twoSquares{parser.result()};
 
