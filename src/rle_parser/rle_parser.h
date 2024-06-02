@@ -8,6 +8,7 @@ class RleParser {
     public:
     RleParser() {};
 
+    /* This function is meant to be called once. */
     void read(const std::string& chunk);
     Universe result();
 

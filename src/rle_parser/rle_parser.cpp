@@ -7,15 +7,12 @@ void RleParser::read(const std::string& chunk) {
     /* Following symbols can appear in file: #,b,o,$,!,[0-9]*/
     size_t cur_number{0};
     bool is_comment_line{false};
-    bool had_exclamation{false};
     bool is_line_start{true};
     int64_t x{0}, y{0};
 
     for (size_t i = 0; i < chunk.size(); i++) {
         char c = chunk[i];
         if (c == '!')
-            had_exclamation = true;
-        if (had_exclamation)
             break;
         
         if (c == '\n') {
