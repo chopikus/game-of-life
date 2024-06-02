@@ -5,7 +5,9 @@ let ctx;
 let universe;
 let lastTimeDrawn = Date.now();
 let alive_cells;
-let speed = 0; // log2 of speed is stored
+let log2speed = 0;
+let log2fps = 5;
+let frame_number = 0;
 
 function addPan() { 
     let mouseStart = null;
@@ -34,34 +36,43 @@ function cellCoordsToScreen(x, y) {
             y: (Number(y) - viewY) * scale};
 }
 
-let frame_number = 0;
-let log2fps = 5;
+function makeTick() {
+    frame_number += 1;
+    frame_number %= (1 << log2fps);
+    
+    if (!isPaused)
+    {
+        if (log2speed > log2fps) {
+            /* Both speed and log2fps are stored as logarithms.
+               Suppose the speed is 64gen/s, and the fps rate is 32gen/s.
+               Then the speed is stored as 6, log2fps is 5.
+               Then we need to make 2 ticks, calling universe.tick(log2(2))=universe.tick(6-5).
+               universe.tick also accepts log2 of tick amount*/
+            universe.tick(log2speed - log2fps);
+        }
+        else {
+            /* Suppose the speed is 2gen/s, framerate is 32gen/s. */
+            /* Then we need to tick 1gen forward every 16'th frame */
+            if (frame_number % (1 << (log2fps-log2speed)) == 0)
+                universe.tick(0);
+        }
+    }
+}
+
 function gameCycle() {
-    let fps = 1 << log2fps;
-    let interval = 1000/fps;
+    let interval = 1000/(1 << log2fps);
     let now = Date.now();
     let delta = now - lastTimeDrawn;
     if (delta > interval) {
-        frame_number += 1;
-        frame_number %= fps;
-        if (!isPaused)
-        {
-            if (speed > log2fps)
-                universe.tick(speed - log2fps);
-            else {
-                if (frame_number % (1 << (log2fps-speed)) == 0)
-                    universe.tick(0);
-            }
-        }
+        makeTick();
         
         let w = ctx.canvas.width / scale;
         let h = ctx.canvas.height / scale;
-        
         alive_cells = universe.get_alive_cells_val(scale, viewX, viewY, viewX + w, viewY + h);
         draw();
         lastTimeDrawn = Date.now() - delta;
         if (Date.now() - now > 1.2 * interval)
-            fps = Math.max(log2fps - 1, 1);
+            log2fps = Math.max(log2fps - 1, 1);
     }
     requestAnimationFrame(gameCycle);
 }
@@ -132,10 +143,10 @@ function startGame(parsedUniverse) {
 function setSpeedText() {
     let s = "paused";
     if (!isPaused) {
-        if (speed < 5)
-            s = String(Math.pow(2, speed)) + " gen/s";
+        if (log2speed < 5)
+            s = String(1 << log2speed) + " gen/s";
         else
-            s = "(2 ^ " + String(speed) + ") gen/s";
+            s = "(2 ^ " + String(log2speed) + ") gen/s";
     }
     document.getElementById("speed-text").innerText = s;
 }
@@ -176,15 +187,15 @@ function onZoomIn() {
 }
 
 function onSlowDown() {
-    if (speed > 0)
-        speed -= 1;
-    if (speed == 0)
+    if (log2speed > 0)
+        log2speed -= 1;
+    if (log2speed == 0)
         document.getElementById("game-slow-down-button").disabled = true;
     setSpeedText();
 }
 
 function onSpeedUp() {
-    speed += 1;
+    log2speed += 1;
     document.getElementById("game-slow-down-button").disabled = false;
     setSpeedText();
 }

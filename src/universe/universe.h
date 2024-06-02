@@ -22,5 +22,5 @@ class Universe {
 
     private:
     Hashlife life;
-    std::vector<int32_t> raw_bytes;
+    std::vector<int32_t> raw_bytes{};
 };

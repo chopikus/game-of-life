@@ -4,7 +4,7 @@
 #include "universe.h"
 #include <utility>
 
-Universe::Universe(const std::vector<Cell>& alive_cells) : life(alive_cells) {};
+Universe::Universe(const std::vector<Cell>& alive_cells) : life(alive_cells), raw_bytes() {};
 
 std::vector<Cell> Universe::get_alive_cells(double scale, double min_x, double min_y, double max_x, double max_y) {
     int64_t i_min_x = floor(min_x);
