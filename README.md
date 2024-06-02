@@ -9,8 +9,9 @@ https://github.com/chopikus/game-of-life/assets/67230858/af7350b7-7e39-4b81-b7f8
 1. Open [https://chopikus.github.io/game-of-life/](https://chopikus.github.io/game-of-life/), choose any .rle pattern.
 2. Enjoy your pattern simulation!
 
-## Steps to build and run locally
+## Steps to build and run locall
 0. Install [emsdk](https://github.com/emscripten-core/emsdk).
+0. Before cloning the respository make sure `git lfs` is installed to properly pull the examples.
 1. Clone a repository.
 2. `mkdir build; cd build` -- create `build` folder and go to it.
 3. `emcmake cmake ..`;
