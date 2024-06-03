@@ -7,6 +7,7 @@ let lastTimeDrawn = Date.now();
 let alive_cells;
 let log2speed = 0;
 let log2fps = 5;
+let frameInterval = 1000/32;
 let frame_number = 0;
 
 function addPan() { 
@@ -61,17 +62,19 @@ function makeTick() {
 }
 
 function gameCycle() {
+    /* TODO: fix this game cycle implementation. */
     let interval = 1000/(1 << log2fps);
-    let frameStart = Date.now();
-    if (frameStart - lastTimeDrawn > interval) {
+    let now = Date.now();
+    let delta = now - lastTimeDrawn;
+    if (delta > interval) {
         makeTick();
         
         let w = ctx.canvas.width / scale;
         let h = ctx.canvas.height / scale;
         alive_cells = universe.get_alive_cells_val(scale, viewX, viewY, viewX + w, viewY + h);
         draw();
-        lastTimeDrawn = Date.now();
-        if (lastTimeDrawn - frameStart > 1.2 * interval)
+        lastTimeDrawn = Date.now() - delta;
+        if (Date.now() - now > 1.2 * interval)
             log2fps = Math.max(log2fps - 1, 1);
     }
     requestAnimationFrame(gameCycle);
@@ -136,7 +139,7 @@ function startGame(parsedUniverse) {
     fixCanvas();
     addPan();
     showGame();
-    requestAnimationFrame(gameCycle);
+    gameCycle();
 }
 
 
