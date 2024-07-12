@@ -125,99 +125,28 @@ NodePtr Hashlife::_centre(const NodePtr& m) {
                  _join(m->d, z, z, z));
 }
 
-NodePtr Hashlife::_life_3x3(
-    const NodePtr& a, const NodePtr& b, const NodePtr& c,
-    const NodePtr& d, const NodePtr& E, const NodePtr& f,
-    const NodePtr& g, const NodePtr& h, const NodePtr& i) {
-
-    int64_t outer_on_cells = a->n() + b->n() + c->n() +
-                             d->n() + f->n() +
-                             g->n() + h->n() + i->n() ;
-
-    if ((outer_on_cells == 2 && E->n()) || outer_on_cells == 3)
-        return _on;
-    else
-        return _off;
-};
-
-NodePtr Hashlife::_life_4x4(const NodePtr& m) {
-    
-    if (_life_4x4_cache.exists(m))
-        return _life_4x4_cache.get(m);
-    NodePtr ab = _life_3x3(m->a->a, m->a->b, m->b->a, 
-                          m->a->c, m->a->d, m->b->c,
-                          m->c->a, m->c->b, m->d->a);
-    
-    NodePtr bc = _life_3x3(m->a->b, m->b->a, m->b->b, 
-                          m->a->d, m->b->c, m->b->d,
-                          m->c->b, m->d->a, m->d->b);
-
-    NodePtr cb = _life_3x3(m->a->c, m->a->d, m->b->c,
-                          m->c->a, m->c->b, m->d->a,
-                          m->c->c, m->c->d, m->d->c);
-    
-    NodePtr da = _life_3x3(m->a->d, m->b->c, m->b->d,
-                          m->c->b, m->d->a, m->d->b,
-                          m->c->d, m->d->c, m->d->d);
-
-    auto result = _join(ab, bc, cb, da);
-    _life_4x4_cache.put(m, result);
-
-    return result;
-}
-
 void Hashlife::successor(uint8_t j) {
-    _root = _centre(_successor(_root, j));
+    size_t steps = 1 << j;
+    for (size_t i=0; i<steps; i++) {
+        _root = _centre(_successor(_root));
+    }
 }
 
-NodePtr Hashlife::_successor(NodePtr m, uint8_t j) {
+NodePtr Hashlife::_successor(NodePtr m) {
     if (!m->n()) {
         return m->a;
     }
 
-    if (m->k() == 1)
+    if (m->k() == 0) {
         return m;
-    
-    if (m->k() == 2) {
-        auto result = _life_4x4(m);
-        return result;
     }
-
-    if (j > m->k() - 2)
-        j = m->k() - 2;
-
-    if (_successor_cache.exists({m, j}))
-        return _successor_cache.get({m, j});
     
-    auto c1 = _successor(m->a, j);
-    auto c2 = _successor(_join(m->a->b, m->b->a, m->a->d, m->b->c), j);
-    auto c3 = _successor(m->b, j);
-    auto c4 = _successor(_join(m->a->c, m->a->d, m->c->a, m->c->b), j);
-    auto c5 = _successor(_join(m->a->d, m->b->c, m->c->b, m->d->a), j);
-    auto c6 = _successor(_join(m->b->c, m->b->d, m->d->a, m->d->b), j);
-    auto c7 = _successor(m->c, j);
-    auto c8 = _successor(_join(m->c->b, m->d->a, m->c->d, m->d->c), j);
-    auto c9 = _successor(m->d, j);
+    auto a = _successor(m->a);
+    auto b = _successor(m->b);
+    auto c = _successor(m->c);
+    auto d = _successor(m->d);
 
-    if (j < m->k() - 2) {
-        auto result = _join(
-                           _join(c1->d, c2->c, c4->b, c5->a),
-                           _join(c2->d, c3->c, c5->b, c6->a),
-                           _join(c4->d, c5->c, c7->b, c8->a),
-                           _join(c5->d, c6->c, c8->b, c9->a)
-                       );
-        _successor_cache.put({m, j}, result);
-        return result;
-    } else {
-        auto result = _join(
-                           _successor(_join(c1, c2, c4, c5), j),
-                           _successor(_join(c2, c3, c5, c6), j),
-                           _successor(_join(c4, c5, c7, c8), j),
-                           _successor(_join(c5, c6, c8, c9), j)
-                       );
-        _successor_cache.put({m, j}, result);
-        return result;
-    };
+    return _join(a, b, c, d);
 }
 
 void Hashlife::_append_alive_cells(const NodePtr& node, std::vector<Cell>& output,

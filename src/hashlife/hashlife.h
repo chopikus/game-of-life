@@ -27,7 +27,7 @@ class Hashlife {
    NodePtr _get_zero(uint8_t k);
 
    /* 
-      from |A B|
+      from  |A B|
             |C D| of size 2^k
       
       returns  |0 0 0 0|
@@ -36,21 +36,10 @@ class Hashlife {
                |0 0 0 0| of size 2^(k+1)
    */
    NodePtr _centre(const NodePtr& m);
-
-   /* Computes next step for node E*/
-   /* | a b c |
-      | d E f |
-      | g h i | */
-   NodePtr _life_3x3(const NodePtr& a, const NodePtr& b, const NodePtr& c,
-                     const NodePtr& d, const NodePtr& E, const NodePtr& f,
-                     const NodePtr& g, const NodePtr& h, const NodePtr& i);
-
-   /* Computes next step for 2x2 node in the center for m of size 4x4*/
-   NodePtr _life_4x4(const NodePtr& m);
-
+   
    /* Computes min(2^j, 2^m.k) steps forward for a 2^(m.n-1)*2^(m.n-1) block in the center of m*/    
    void successor(uint8_t j = 0);
-   NodePtr _successor(NodePtr m, uint8_t j = 0);
+   NodePtr _successor(NodePtr m);
 
    void _append_alive_cells(const NodePtr& node, std::vector<Cell>& output,
                             uint8_t level,
