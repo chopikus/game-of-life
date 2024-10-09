@@ -1,29 +1,84 @@
-# game-of-life
+<div align="center">
 
-This branch has the C++ implementation. Check out <a href="https://github.com/chopikus/game-of-life/tree/rust-impl">`rust-impl`</a> branch for a newer Rust implementation.
+  <h1><code>wasm-pack-template</code></h1>
 
+  <strong>A template for kick starting a Rust and WebAssembly project using <a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>.</strong>
 
-**The explanation blog can be found here:** https://chopikus.github.io/game-of-life-explanation/
+  <p>
+    <a href="https://travis-ci.org/rustwasm/wasm-pack-template"><img src="https://img.shields.io/travis/rustwasm/wasm-pack-template.svg?style=flat-square" alt="Build Status" /></a>
+  </p>
 
-https://github.com/chopikus/game-of-life/assets/67230858/af7350b7-7e39-4b81-b7f8-af6c471d8eeb
+  <h3>
+    <a href="https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html">Tutorial</a>
+    <span> | </span>
+    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
+  </h3>
 
-## Usage
-0. Download any pattern in .rle format. A few examples are [here](https://github.com/chopikus/game-of-life/tree/main/rle_examples).
-1. Open [https://chopikus.github.io/game-of-life/](https://chopikus.github.io/game-of-life/), choose any .rle pattern.
-2. Enjoy your pattern simulation!
+  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
+</div>
 
-## Steps to build and run locally
-0. Install [emsdk](https://github.com/emscripten-core/emsdk).
-0. Before cloning the respository make sure `git lfs` is installed to properly pull the examples.
-1. Clone a repository.
-2. `mkdir build; cd build` -- create `build` folder and go to it.
-3. `emcmake cmake ..`;
-4. `make` -- builds C++ backend;
-5. `make test` -- tests C++ backend;
-6. `cd ../front`.
-7. Run local server from the current folder. Example: `basic-http-server .`
+## About
 
-## Helpful projects
-This implementation is largely inspired from [this](https://johnhw.github.io/hashlife/index.md.html) amazing explanation made by [johnhw](https://github.com/johnhw)!
+[**📚 Read this template tutorial! 📚**][template-docs]
 
-[cpp-lru-cache](https://github.com/lamerman/cpp-lru-cache) is used in this implementation (Copyright (c) 2014, lamerman)
+This template is designed for compiling Rust libraries into WebAssembly and
+publishing the resulting package to NPM.
+
+Be sure to check out [other `wasm-pack` tutorials online][tutorials] for other
+templates and usages of `wasm-pack`.
+
+[tutorials]: https://rustwasm.github.io/docs/wasm-pack/tutorials/index.html
+[template-docs]: https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html
+
+## 🚴 Usage
+
+### 🐑 Use `cargo generate` to Clone this Template
+
+[Learn more about `cargo generate` here.](https://github.com/ashleygwilliams/cargo-generate)
+
+```
+cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name my-project
+cd my-project
+```
+
+### 🛠️ Build with `wasm-pack build`
+
+```
+wasm-pack build
+```
+
+### 🔬 Test in Headless Browsers with `wasm-pack test`
+
+```
+wasm-pack test --headless --firefox
+```
+
+### 🎁 Publish to NPM with `wasm-pack publish`
+
+```
+wasm-pack publish
+```
+
+## 🔋 Batteries Included
+
+* [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) for communicating
+  between WebAssembly and JavaScript.
+* [`console_error_panic_hook`](https://github.com/rustwasm/console_error_panic_hook)
+  for logging panic messages to the developer console.
+* `LICENSE-APACHE` and `LICENSE-MIT`: most Rust projects are licensed this way, so these are included for you
+
+## License
+
+Licensed under either of
+
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you, as defined in the Apache-2.0
+license, shall be dual licensed as above, without any additional terms or
+conditions.
