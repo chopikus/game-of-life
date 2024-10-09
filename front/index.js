@@ -1,4 +1,7 @@
-import init, { greet } from "../pkg/hello_wasm.js"
+const myWorker = new Worker('worker.js');
 
-await init();
-greet();
+myWorker.postMessage('hello to the worker');
+
+myWorker.onmessage = function (event) {
+  console.log('Received message from worker:', event.data);
+};
