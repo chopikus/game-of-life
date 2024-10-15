@@ -1,4 +1,6 @@
 mod utils;
+mod rle_parser;
+mod units;
 
 use wasm_bindgen::prelude::*;
 
@@ -10,6 +12,7 @@ extern "C" {
 
 #[wasm_bindgen]
 struct Universe {
+    
     output: Vec<u8>,  
 }
 
