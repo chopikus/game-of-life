@@ -1,7 +1,9 @@
 mod utils;
 mod rle_parser;
+mod life;
 mod units;
 
+use life::Life;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -12,30 +14,20 @@ extern "C" {
 
 #[wasm_bindgen]
 struct Universe {
-    
-    output: Vec<u8>,  
+    life: Life,
+    output: Vec<u8>,
 }
 
 #[wasm_bindgen]
 impl Universe {
-    pub fn new() -> Universe {
+    pub fn new(s: String) -> Universe {
         Universe {
+            life: Life::new(rle_parser::read(s)),
             output: vec![]
         }
     }
 
-    pub fn read(&mut self, x: String) -> *const u8 { 
-        //log(&x);
-        
-        let mut my_vec= vec![];
-        
-        for i in 0..1048576 {
-            let val = (i % 255) as u8;
-            my_vec.push(val);
-        }
-
-        self.output = my_vec;
-
+    pub fn read(&self, x: String) -> *const u8 { 
         return self.output.as_ptr();
     }   
 }
