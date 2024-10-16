@@ -15,7 +15,7 @@ extern "C" {
 #[wasm_bindgen]
 struct Universe {
     life: Life,
-    output: Vec<u8>,
+    output: Vec<i64>,
 }
 
 #[wasm_bindgen]
@@ -27,7 +27,24 @@ impl Universe {
         }
     }
 
-    pub fn read(&self, x: String) -> *const u8 { 
+    pub fn tick(&mut self) {
+        self.life.tick();
+    }
+
+    pub fn req_output(&mut self) {
+        self.output.clear();
+        let alive_cells = self.life.alive_cells();
+        for item in alive_cells {
+            self.output.push(item.x);
+            self.output.push(item.y);
+        }
+    }
+
+    pub fn output_len(&self) -> usize {
+        return self.output.len();
+    }
+
+    pub fn output(&self) -> *const i64 { 
         return self.output.as_ptr();
     }   
 }
