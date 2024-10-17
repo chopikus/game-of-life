@@ -1,19 +1,31 @@
 const log2fps = 5;
+const timeStep = 1000.0 / (1 << log2fps);
+
+let lastTimeGenerated = 0.0;
+let delta = 0.0;
+let frame_number = 0;
 
 let log2speed = 0;
-let frame_number = 0;
-let lastTimeGenerated = Date.now();
-let isPaused = false;
+function setlog2speed(x) {
+    log2speed = x;
+}
 
-function genCycle(wasmWorker) {    
-    let interval = 1000 / (1 << log2fps);
-    let now = Date.now();
-    let delta = now - lastTimeGenerated;
-    if (delta > interval) {        
+let isPaused = true;
+function setIsPaused(x) {
+    isPaused = x;
+}
+
+function genCycle(time, wasmWorker) {    
+    const dt = time - lastTimeGenerated;
+    delta += dt;
+    lastTimeGenerated = time;
+
+    while (delta > timeStep) {
         gen(wasmWorker);
-        lastTimeGenerated = Date.now();
+        delta -= timeStep;
     }
-    requestAnimationFrame(() => genCycle(wasmWorker));
+
+    requestAnimationFrame((timeStamp) => genCycle(timeStamp, wasmWorker));
 }
 
 function gen(wasmWorker) {
@@ -34,11 +46,12 @@ function gen(wasmWorker) {
             /* Suppose the speed is 2gen/s, framerate is 32gen/s. */
             /* Then we need to tick 1gen forward every 16'th frame */
             if (frame_number % (1 << (log2fps-log2speed)) == 0) {
-                console.log("tick");
+                console.timeLog("tick");
                 wasmWorker.postMessage({req: "tick", speed: 0});
             }
         }
     }
 }
+console.time("tick");
 
-export {genCycle, gen, log2fps};
+export {genCycle, gen, log2fps, isPaused, setIsPaused, log2speed, setlog2speed};

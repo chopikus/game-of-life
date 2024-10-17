@@ -31,13 +31,13 @@ function draw() {
         return;
     }
     updated = false;
+
+    console.timeLog("draw");
     
-    console.timeLog("hello");
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     drawGrid(); 
     drawCells();
-    console.timeLog("hello");
 }
 
 function drawGrid() {
@@ -146,4 +146,5 @@ onmessage = (event) => {
     updated = true;
 };
 
-console.time("hello");
+
+console.log("draw");
