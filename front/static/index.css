@@ -3,7 +3,7 @@
 }
 
 html, body, #menu, #bg { width:100%; height:100%; margin: 0; padding: 0; overflow: hidden;}
-@font-face { font-family: game-font; src: url('game-font.ttf'); }
+@font-face { font-family: game-font; src: url('./game-font.ttf'); }
 #bg {
     background-color: black;
 }
