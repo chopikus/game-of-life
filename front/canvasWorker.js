@@ -1,4 +1,4 @@
-const log2fps = 5;
+import {log2fps} from "./gen.js";
 
 let viewX = 0;
 let viewY = 0;
@@ -9,33 +9,21 @@ let aliveCells;
 let lastTimeDrawn = Date.now();
 let updated = false;
 
-function addPan() { 
-    let mouseStart = null;
-    ctx.canvas.addEventListener("mousedown", e => {
-        mouseStart = {x: e.clientX, y: e.clientY};
-    });
-
-    ["mouseup", "mouseleave"].forEach(name => ctx.canvas.addEventListener(name, _ => {
-        mouseStart = null;
-    }));
-
-    ctx.canvas.addEventListener("mousemove", e => {
-        if (!mouseStart)
-            return;
-        let dx = e.clientX - mouseStart.x;
-        let dy = e.clientY - mouseStart.y;
-        // TODO
-        viewX -= dx / scale; 
-        viewY -= dy / scale;
-        mouseStart = {x: e.clientX, y: e.clientY};
-        // TODO
-        //draw();
-    });
-}
-
 function cellCoordsToScreen(x, y) {
     return {x: (Number(x) - viewX) * scale, 
             y: (Number(y) - viewY) * scale};
+}
+
+
+function drawCycle() {
+    let interval = 1000 / (1 << log2fps);
+    let now = Date.now();
+    let delta = now - lastTimeDrawn;
+    if (delta > interval) {        
+        draw();
+        lastTimeDrawn = Date.now() - delta;
+    }
+    requestAnimationFrame(drawCycle);
 }
 
 function draw() {
@@ -43,11 +31,13 @@ function draw() {
         return;
     }
     updated = false;
-
+    
+    console.timeLog("hello");
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     drawGrid(); 
     drawCells();
+    console.timeLog("hello");
 }
 
 function drawGrid() {
@@ -96,25 +86,12 @@ function drawCells() {
     }
 }
 
-function drawCycle() {
-    let interval = 1000 / (1 << log2fps);
-    let now = Date.now();
-    let delta = now - lastTimeDrawn;
-    if (delta > interval) {        
-        draw();
-        lastTimeDrawn = Date.now() - delta;
-    }
-    requestAnimationFrame(drawCycle);
-}
-
 onmessage = (event) => {
     const data = event.data;
     switch (data.req) {
         case "canvasStart": {
             let canvas = data.canvas;
             ctx = canvas.getContext("2d");
-
-            //addPan();
 
             requestAnimationFrame(drawCycle);
             break;
@@ -124,20 +101,41 @@ onmessage = (event) => {
             viewX = data.viewX;
             viewY = data.viewY;
             scale = data.scale;
-            updated = true;
             break;
         }
 
         case "canvasUpdateCells": {
             aliveCells = new BigInt64Array(data.buf);
-            updated = true;
             break;
         }
 
         case "canvasResize": {
             ctx.canvas.width = data.width;
             ctx.canvas.height = data.height;
-            updated = true;
+            break;
+        }
+
+        case "canvasPan": {
+            let dx = data.dx;
+            let dy = data.dy;
+            viewX -= dx / scale; 
+            viewY -= dy / scale;
+            break;
+        }
+
+        case "canvasZoomIn": {
+            if (scale <= 10)
+                scale *= 1.5;
+            else
+                scale += 10;
+            break;
+        }
+
+        case "canvasZoomOut": {
+            if (scale <= 10)
+                scale /= 1.5;
+            else
+                scale -= 10;
             break;
         }
 
@@ -145,4 +143,7 @@ onmessage = (event) => {
             break;
         }
     }
+    updated = true;
 };
+
+console.time("hello");

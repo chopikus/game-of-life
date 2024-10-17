@@ -24,27 +24,19 @@ function onPausePlay() {
    }
 }
 
-function onZoomOut() {
+function onZoomOut(canvasWorker) {
     document.getElementById("game-zoom-out-button").removeEventListener('click', onZoomOut);
-    // TODO
-    if (scale <= 10)
-        scale /= 1.5;
-    else
-        scale -= 10;
-    //draw();
-    lastTimeDrawn = Date.now();
+
+    canvasWorker.postMessage({req: "canvasZoomOut"});
+
     document.getElementById("game-zoom-out-button").addEventListener('click', onZoomOut);
 }
 
-function onZoomIn() {
+function onZoomIn(canvasWorker) {
     document.getElementById("game-zoom-in-button").removeEventListener('click', onZoomIn);
-    // TODO
-    if (scale <= 10)
-        scale *= 1.5;
-    else
-        scale += 10;
-    //draw();
-    lastTimeDrawn = Date.now();
+
+    canvasWorker.postMessage({req: "canvasZoomIn"});
+
     document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
 }
 
@@ -64,10 +56,10 @@ function onSpeedUp() {
     setSpeedText();
 }
 
-function addGameMenuListeners() {
+function addGameMenuListeners(canvasWorker) {
     document.getElementById("game-pause-play-button").addEventListener('click', onPausePlay);
-    document.getElementById("game-zoom-out-button").addEventListener('click', onZoomOut);
-    document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
+    document.getElementById("game-zoom-out-button").addEventListener('click', () => onZoomOut(canvasWorker));
+    document.getElementById("game-zoom-in-button").addEventListener('click', () => onZoomIn(canvasWorker));
     document.getElementById("game-slow-down-button").addEventListener('click', onSlowDown);
     document.getElementById("game-speed-up-button").addEventListener('click', onSpeedUp);
 }
@@ -80,6 +72,29 @@ function showGame() {
     document.getElementById("game-menu").hidden = false;
 }
 
+function addPan(canvasWorker) { 
+    let mouseStart = null;
+    let canvas_div = document.getElementById("canvas-div");
+
+    canvas_div.addEventListener("mousedown", e => {
+        mouseStart = {x: e.clientX, y: e.clientY};
+    });
+    
+    ["mouseup", "mouseleave"].forEach(name => canvas_div.addEventListener(name, _ => {
+        mouseStart = null;
+    }));
+
+    canvas_div.addEventListener("mousemove", e => {
+        if (!mouseStart)
+            return;
+        let dx = e.clientX - mouseStart.x;
+        let dy = e.clientY - mouseStart.y;
+        canvasWorker.postMessage({req: "canvasPan", dx, dy});
+        
+        mouseStart = {x: e.clientX, y: e.clientY};
+    });
+}
+
 function fixCanvas(canvasWorker) {
     function resizeCanvas() {
         canvasWorker.postMessage({req: "canvasResize", width: window.innerWidth, height: window.innerHeight});
@@ -89,7 +104,8 @@ function fixCanvas(canvasWorker) {
 }
 
 function gameDOMInit(canvasWorker) {
-    addGameMenuListeners();
+    addGameMenuListeners(canvasWorker);
+    addPan(canvasWorker);
     fixCanvas(canvasWorker);
     showGame();
 }

@@ -78,7 +78,7 @@ impl Life {
         let mut result = BTreeMap::<YCoord, BTreeSet<XCoord>>::new();
 
         for y in rows_to_compute {
-            for x in min_x..=max_x {
+            for x in min_x-1..=max_x+1 {
                 let neighbours = self.alive_neighbor_count(x, y);
                 let cell = self.is_cell_alive(x, y);
                 
