@@ -21,17 +21,12 @@ let onMessageResponse = async (data) => {
 
         case "tick": {
             universe.tick();
-            postMessage({res: "tickOk"});
-            break;
-        }
-
-        case "aliveCells": {
             universe.req_output();
             const outputPtr = universe.output();
             const outputLen = universe.output_len();
             const cells0 = new BigInt64Array(rustWasm.memory.buffer, outputPtr, outputLen);
             const cells = new BigInt64Array(cells0);
-
+            
             postMessage({res: "aliveCellsOk", buf: cells.buffer}, [cells.buffer]);
             break;
         }
