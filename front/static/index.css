@@ -34,11 +34,11 @@ html, body, #menu, #bg { width:100%; height:100%; margin: 0; padding: 0; overflo
     background-color: blue;
 }
 
-#game-zoom-in-button { background-image: url('img/zoom-in.png') }
-#game-zoom-out-button { background-image: url('img/zoom-out.png') }
-#game-speed-up-button { background-image: url('img/fast-forward.png') }
-#game-slow-down-button { background-image: url('img/rewind.png') }
-#game-pause-play-button { background-image: url('img/play-button.png') }
+#game-zoom-in-button { background-image: url('./zoom-in.png') }
+#game-zoom-out-button { background-image: url('./zoom-out.png') }
+#game-speed-up-button { background-image: url('./fast-forward.png') }
+#game-slow-down-button { background-image: url('./rewind.png') }
+#game-pause-play-button { background-image: url('./play-button.png') }
 
 #speed-text-div {
     flex-basis: 100%;
