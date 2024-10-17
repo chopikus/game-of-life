@@ -1,0 +1,93 @@
+[hidden] {
+    display: none !important;
+}
+
+html, body, #menu, #bg { width:100%; height:100%; margin: 0; padding: 0; overflow: hidden;}
+@font-face { font-family: game-font; src: url('game-font.ttf'); }
+#bg {
+    background-color: black;
+}
+
+#canvas {
+    position: absolute;
+    z-index: 1;
+}
+
+#game-menu {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    width: 100%;
+    z-index: 2;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+}
+
+#game-zoom-in-button, #game-zoom-out-button,
+#game-slow-down-button, #game-speed-up-button,
+#game-pause-play-button {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    background-size: 100%;
+    background-color: blue;
+}
+
+#game-zoom-in-button { background-image: url('img/zoom-in.png') }
+#game-zoom-out-button { background-image: url('img/zoom-out.png') }
+#game-speed-up-button { background-image: url('img/fast-forward.png') }
+#game-slow-down-button { background-image: url('img/rewind.png') }
+#game-pause-play-button { background-image: url('img/play-button.png') }
+
+#speed-text-div {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#speed-text {
+    background-color: blue;
+    font-size: 20px;
+    color: white;
+    font-family: game-font;
+}
+
+#menu, #loading {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: transparent;
+    font-family: game-font;
+    color: white;
+}
+#name {
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+#input-label {
+    font-size: 0.8em;
+    padding: 5px;
+    border-radius: 7px;
+}
+#play-button {
+    padding-top: 3px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 20px;
+    background-color: transparent;
+    border-radius: 10px;
+    font-family: game-font;
+    font-size: 1.2em;
+    border-color: white;
+    color: white;
+    border-size: 3px;
+}
+
+#play-button:disabled {
+    color: gray;
+    border-color: gray;
+}

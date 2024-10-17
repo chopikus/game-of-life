@@ -1,33 +1,37 @@
-const myWorker = new Worker('worker.js', {type: 'module'});
+import {showMenu} from "./menu.js";
+const wasmWorker = new Worker('./wasmWorker.js', {type: 'module'});
 
-const gliderText = `# comment1
-# comment2
-x = 10, y = 10
-# comment3
-bo$2bo$3o!
+function response(data) {
+    switch (data.res) {
+        case "initWasmOk": {
+            showMenu();   
+            break; 
+        }
 
-# is the same as
+        case "readFileOk": {
+            wasmWorker.postMessage({req: "parseFile", s: data.s});
+            break;
+        }
 
-# bob
-# bbo
-# ooo
-# (1,0), (2,1), (0,2), (1,2), (2,2)`;
+        case "parseFileOk": {
+            wasmWorker.postMessage({req: "aliveCells"});
+            break;
+        }
+        
+        case "aliveCellsOk": {
+            const bar = new BigInt64Array(data.buf);
+            console.log(bar);
+            console.timeEnd("start");
+            break;
+        }
 
-
-console.log("hello");
-myWorker.postMessage({req: "init"});
-
-myWorker.onmessage = function (event) {
-  console.log(event.data);
-  switch (event.data.res) {
-    case "cellOk": {
-      console.log("cell ok!!");
-      const bar = new BigInt64Array(event.data.buf);
-      console.log(bar);
-      break;
+        default: {
+            break;
+        }
     }
-    default: {
-      break;
-    }
-  }
-};
+}
+
+wasmWorker.addEventListener("message", (event) => {response(event.data)});
+wasmWorker.postMessage({req: "initWasm"});
+
+export {response};

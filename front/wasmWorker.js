@@ -4,18 +4,18 @@ let rustWasm, universe;
 
 let onMessageResponse = async (data) => {
     switch (data.req) {
-        case "init": {
+        case "initWasm": {
             rustWasm = await wasmInit("./pkg/game_of_life_rust_bg.wasm");
-            postMessage({res: "initOk"});
+            postMessage({res: "initWasmOk"});
             break;
         }
         
-        case "file": {
+        case "parseFile": {
             let s = data.s;
             if (universe)
                 universe.free();
             universe = Universe.new(s);
-            postMessage({res: "fileOk"});
+            postMessage({res: "parseFileOk"});
             break;
         }
 
@@ -25,14 +25,14 @@ let onMessageResponse = async (data) => {
             break;
         }
 
-        case "cell": {
+        case "aliveCells": {
             universe.req_output();
             const outputPtr = universe.output();
             const outputLen = universe.output_len();
             const cells0 = new BigInt64Array(rustWasm.memory.buffer, outputPtr, outputLen);
             const cells = new BigInt64Array(cells0);
 
-            postMessage({res: "cellOk", buf: cells.buffer}, [cells.buffer]);
+            postMessage({res: "aliveCellsOk", buf: cells.buffer}, [cells.buffer]);
             break;
         }
 
