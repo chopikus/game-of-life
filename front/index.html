@@ -1,10 +1,36 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <meta charset="utf-8">
+    <title>Game of life</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <head>
+        <link rel="stylesheet" href="index.css">
+    </head>
   </head>
   <body>
-    <script src="./index.js"></script>
+    <noscript>Please enable javascript in your browser.</noscript>
+    <div id="bg">
+        <canvas id="canvas" hidden></canvas>
+        <div id="game-menu" hidden>
+            <button id="game-slow-down-button" disabled></button>
+            <button id="game-zoom-out-button"></button>
+            <button id="game-pause-play-button"></button>
+            <button id="game-zoom-in-button"></button>
+            <button id="game-speed-up-button"></button>
+            <div id="speed-text-div">
+                <p id="speed-text">paused</p>
+            </div>
+        </div>
+        <div id="menu" hidden>
+            <h2 id="name">GAME OF LIFE</h1>
+            <input id="file-input" type="file" accept=".rle"/>
+            <button id="play-button" disabled>PLAY</button>
+        </div>
+        <div id="loading">
+            <p>Loading..</p>
+        </div>
+    </div>
+    <script src="./index.js" type="module"></script>
   </body>
 </html>
-
