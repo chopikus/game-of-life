@@ -13,9 +13,11 @@ function addPan() {
             return;
         let dx = e.clientX - mouseStart.x;
         let dy = e.clientY - mouseStart.y;
-        viewX -= dx / scale;
+        // TODO
+        viewX -= dx / scale; 
         viewY -= dy / scale;
         mouseStart = {x: e.clientX, y: e.clientY};
+        // TODO
         draw();
     });
 }
@@ -34,10 +36,12 @@ function setSpeedText() {
 let isPaused = true;
 function onPausePlay() {
    if (!isPaused) {
+        // TODO
         isPaused = true;
         document.getElementById("game-pause-play-button").style.backgroundImage = "url(img/play-button.png)";
         setSpeedText();
    } else {
+        // TODO
         isPaused = false;
         document.getElementById("game-pause-play-button").style.backgroundImage = "url(img/pause-button.png)";
         setSpeedText();
@@ -46,6 +50,7 @@ function onPausePlay() {
 
 function onZoomOut() {
     document.getElementById("game-zoom-out-button").removeEventListener('click', onZoomOut);
+    // TODO
     if (scale <= 10)
         scale /= 1.5;
     else
@@ -57,6 +62,7 @@ function onZoomOut() {
 
 function onZoomIn() {
     document.getElementById("game-zoom-in-button").removeEventListener('click', onZoomIn);
+    // TODO
     if (scale <= 10)
         scale *= 1.5;
     else
@@ -67,6 +73,7 @@ function onZoomIn() {
 }
 
 function onSlowDown() {
+    // TODO
     if (log2speed > 0)
         log2speed -= 1;
     if (log2speed == 0)
@@ -75,6 +82,7 @@ function onSlowDown() {
 }
 
 function onSpeedUp() {
+    // TODO
     log2speed += 1;
     document.getElementById("game-slow-down-button").disabled = false;
     setSpeedText();
@@ -106,4 +114,11 @@ function showGame() {
     document.getElementById("menu").hidden = true;
     document.getElementById("canvas").hidden = false; 
     document.getElementById("game-menu").hidden = false;
+}
+
+function gameInit() {
+    addGameMenuListeners();
+    fixCanvas();
+    addPan();
+    showGame();
 }
