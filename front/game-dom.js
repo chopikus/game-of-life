@@ -1,27 +1,3 @@
-function addPan() { 
-    let mouseStart = null;
-    ctx.canvas.addEventListener("mousedown", e => {
-        mouseStart = {x: e.clientX, y: e.clientY};
-    });
-
-    ["mouseup", "mouseleave"].forEach(name => ctx.canvas.addEventListener(name, _ => {
-        mouseStart = null;
-    }));
-
-    ctx.canvas.addEventListener("mousemove", e => {
-        if (!mouseStart)
-            return;
-        let dx = e.clientX - mouseStart.x;
-        let dy = e.clientY - mouseStart.y;
-        // TODO
-        viewX -= dx / scale; 
-        viewY -= dy / scale;
-        mouseStart = {x: e.clientX, y: e.clientY};
-        // TODO
-        draw();
-    });
-}
-
 function setSpeedText() {
     let s = "paused";
     if (!isPaused) {
@@ -55,7 +31,7 @@ function onZoomOut() {
         scale /= 1.5;
     else
         scale -= 10;
-    draw();
+    //draw();
     lastTimeDrawn = Date.now();
     document.getElementById("game-zoom-out-button").addEventListener('click', onZoomOut);
 }
@@ -67,7 +43,7 @@ function onZoomIn() {
         scale *= 1.5;
     else
         scale += 10;
-    draw();
+    //draw();
     lastTimeDrawn = Date.now();
     document.getElementById("game-zoom-in-button").addEventListener('click', onZoomIn);
 }
@@ -96,18 +72,6 @@ function addGameMenuListeners() {
     document.getElementById("game-speed-up-button").addEventListener('click', onSpeedUp);
 }
 
-function fixCanvas() {
-    const canvas = document.getElementById('canvas');
-    ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        draw();
-    }
-    window.addEventListener('resize', resizeCanvas, false);
-    resizeCanvas();
-}
 
 function showGame() {
     document.getElementById("loading").hidden = true;
@@ -116,9 +80,18 @@ function showGame() {
     document.getElementById("game-menu").hidden = false;
 }
 
-function gameInit() {
+function fixCanvas(canvasWorker) {
+    function resizeCanvas() {
+        canvasWorker.postMessage({req: "canvasResize", width: window.innerWidth, height: window.innerHeight});
+    }
+    window.addEventListener('resize', resizeCanvas, false);
+    resizeCanvas();
+}
+
+function gameDOMInit(canvasWorker) {
     addGameMenuListeners();
-    fixCanvas();
-    addPan();
+    fixCanvas(canvasWorker);
     showGame();
 }
+
+export {gameDOMInit};

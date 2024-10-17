@@ -1,12 +1,12 @@
 import {showMenu} from "./menu.js";
-import {gameInit} from "./game-dom.js";
+import {gameDOMInit} from "./game-dom.js";
 
 const wasmWorker = new Worker('./wasmWorker.js', {type: 'module'});
-const gameWorker = new Worker('./game.js', {type: 'module'});
+const canvasWorker = new Worker('./canvasWorker.js', {type: 'module'});
 
 const log2fps = 5;
 let log2speed = 0;
-
+let frame_number = 0;
 let viewX = 0;
 let viewY = 0;
 let scale = 50;
@@ -24,15 +24,19 @@ function response(data) {
         }
 
         case "parseFileOk": {
-            gameInit();
+            // 1. Pass canvas to canvas worker
+            const offscreen = document.getElementById("canvas").transferControlToOffscreen();
+            canvasWorker.postMessage({req: "canvasStart", canvas: offscreen}, [offscreen]);
+
+            // 2. Initialize game controls
+            gameDOMInit(canvasWorker);
+
+            wasmWorker.postMessage({req: "aliveCells", speed: 0});
             break;
         }
         
         case "aliveCellsOk": {
-            const bar = new BigInt64Array(data.buf);
-            console.log(bar);
-
-            //gameWorker.postMessage({req: "update", aliveCells: ...});
+            canvasWorker.postMessage({req: "canvasUpdateCells", buf: data.buf}, [data.buf]);
             break;
         }
 
