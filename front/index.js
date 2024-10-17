@@ -25,7 +25,7 @@ function response(data) {
             // 2. Initialize game controls
             gameDOMInit(canvasWorker);
 
-            requestAnimationFrame(() => genCycle(wasmWorker));
+            requestAnimationFrame((timeStamp) => genCycle(timeStamp, wasmWorker));
             break;
         }
         

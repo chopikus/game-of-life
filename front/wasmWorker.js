@@ -20,7 +20,7 @@ let onMessageResponse = async (data) => {
         }
 
         case "tick": {
-            universe.tick();
+            universe.tick(data.speed);
             universe.req_output();
             const outputPtr = universe.output();
             const outputLen = universe.output_len();

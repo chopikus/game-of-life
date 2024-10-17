@@ -1,3 +1,5 @@
+import { isPaused, log2speed, setIsPaused, setlog2speed } from "./gen.js";
+
 function setSpeedText() {
     let s = "paused";
     if (!isPaused) {
@@ -9,17 +11,14 @@ function setSpeedText() {
     document.getElementById("speed-text").innerText = s;
 }
 
-let isPaused = true;
 function onPausePlay() {
    if (!isPaused) {
-        // TODO
-        isPaused = true;
-        document.getElementById("game-pause-play-button").style.backgroundImage = "url(img/play-button.png)";
+        setIsPaused(true);
+        document.getElementById("game-pause-play-button").style.backgroundImage = "url(/static/play-button.png)";
         setSpeedText();
    } else {
-        // TODO
-        isPaused = false;
-        document.getElementById("game-pause-play-button").style.backgroundImage = "url(img/pause-button.png)";
+        setIsPaused(false);
+        document.getElementById("game-pause-play-button").style.backgroundImage = "url(/static/pause-button.png)";
         setSpeedText();
    }
 }
@@ -41,17 +40,15 @@ function onZoomIn(canvasWorker) {
 }
 
 function onSlowDown() {
-    // TODO
     if (log2speed > 0)
-        log2speed -= 1;
+        setlog2speed(log2speed - 1);
     if (log2speed == 0)
         document.getElementById("game-slow-down-button").disabled = true;
     setSpeedText();
 }
 
 function onSpeedUp() {
-    // TODO
-    log2speed += 1;
+    setlog2speed(log2speed + 1);
     document.getElementById("game-slow-down-button").disabled = false;
     setSpeedText();
 }

@@ -27,8 +27,8 @@ impl Universe {
         }
     }
 
-    pub fn tick(&mut self) {
-        self.life.tick();
+    pub fn tick(&mut self, log_times: u8) {
+        self.life.tick(log_times);
     }
 
     pub fn req_output(&mut self) {

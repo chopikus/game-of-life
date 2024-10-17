@@ -60,7 +60,14 @@ impl Life {
         count
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self, log_times: u8) {
+        let times: u32 = 1 << log_times;
+        for _ in 0..times {
+            self.tick_internal();
+        }
+    }
+
+    fn tick_internal(&mut self) {
         let mut rows_to_compute = BTreeSet::new();
         let mut min_x : i64 = 0;
         let mut max_x : i64 = 0;
@@ -132,7 +139,7 @@ mod tests {
     #[test]
     fn tick_cells() {
         let mut glider = glider();
-        glider.tick();
+        glider.tick(0);
 
         let alive_cells = glider.alive_cells();
         assert_eq!(alive_cells.len(), 5);
