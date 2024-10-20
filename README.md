@@ -9,6 +9,7 @@ The previous C++ implementation had several issues:
 In this branch I try to fix those problems.
 
 Done so far:
+* Separated UI handling, drawing on canvas, and calculating next generation on different threads
 * Refactored frontend to different files
 * Fixed the game cycle
 * File reading seems to be faster
