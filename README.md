@@ -1,6 +1,8 @@
 # game-of-life
 
-This branch has the C++ implementation. Check out `rust-impl` branch for a newer Rust implementation.
+This branch has the C++ implementation. Check out <a href="https://github.com/chopikus/game-of-life/tree/rust-impl">`rust-impl`</a> branch for a newer Rust implementation.
+
+
 **The explanation blog can be found here:** https://chopikus.github.io/game-of-life-explanation/
 
 https://github.com/chopikus/game-of-life/assets/67230858/af7350b7-7e39-4b81-b7f8-af6c471d8eeb
