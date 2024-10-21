@@ -17,6 +17,10 @@ Done so far:
 In progress:
 * moving calculations to Rust (basic algorithm is there but not Hashlife)
 
+## steps to run
+1. `./build.sh` or `wasm-pack build --out-dir front/pkg --target web`
+2. run a local server from `front` folder, (e.g. `cd front; basic-http-server .`)
+
 ## benchmark
 Before proceding with refactoring, I measured how much time does it take to transfer data from Wasm memory on a worker to JS on a main thread.
 
