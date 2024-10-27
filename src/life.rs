@@ -1,110 +1,61 @@
-use std::collections::{BTreeMap, BTreeSet};
-use super::units::{Cell, XCoord, YCoord};
+use std::{collections::{BTreeMap, BTreeSet}, rc::Rc};
+
+use super::units::{Cell, XCoord, YCoord, Node};
 use std::cmp::{min, max};
 
 pub struct Life {
-    alive_cells_rows: BTreeMap<YCoord, BTreeSet<XCoord>>
+   /* 
+    Fixing user coordinates
+    1. Add -min_x to shift_x, -min_y to shift_y, 
+        so that all cells have coordinates >= (0, 0)
+    2. Upon construction of a map, we centre() it until it gets big enough.
+        However, (0,0) points after centering is at a different point,
+        so all coordinates that user provides need to be fixed. 
+    3. When calling get_alive_cells, 
+        we add shift_x to min_x, max_x, 
+        and add shift_y to min_y, max_y.
+
+        Then when returning result,
+        we subtract (shift_x,shift_y) from every cell we return.
+   */
+   shift_x: XCoord,
+   shift_y: YCoord,
+   root: Rc<Node>,
+   on: Rc<Node>,
+   off: Rc<Node>
 }
 
 impl Life {
     pub fn new(alive_cells: Vec<Cell>) -> Life {
-        let mut alive_cells_rows = BTreeMap::<i64, BTreeSet<i64>>::new();
+        let off = Node::new_empty(0, false, 0);
+        let on = Node::new_empty(0, true, 1);
 
-        for c in alive_cells {
-            alive_cells_rows
-                .entry(c.y)
-                .or_default()
-                .insert(c.x);
-        }
+        if alive_cells.is_empty() {
+            return Life {
+                on, off,
+                shift_x: 0,
+                shift_y: 0,
+                root: off,
+            };
+        } else {
+            /* alive_cells is not empty, can unwrap */
+            let min_x: i64 = alive_cells.iter().map(|c| c.x).min().unwrap();
+            let min_y: i64 = alive_cells.iter().map(|c| c.y).min().unwrap(); 
+            
+            let root: Rc<Node> = Self::construct_root(min_x, min_y, alive_cells);
+            let shift_x: i64 = min_x;
+            let shift_y: i64 = min_y;
 
-        Life {
-            alive_cells_rows
-        }
-    }
+            //while ()
+            return Life {
 
-    pub fn alive_cells(&self) -> Vec<Cell> {
-        let mut result = vec![];
-        
-        for (&y, row) in &self.alive_cells_rows {
-            for &x in row {
-                result.push(Cell{x, y});
-            }
-        }
-
-        result
-    }
-
-    #[inline]
-    fn is_cell_alive(&self, x: i64, y: i64) -> bool {
-        let row = self.alive_cells_rows.get(&y);
-
-        return match row {
-            None => false,
-            Some(row) => {row.contains(&x)}
-        };
-    }
-
-    #[inline]
-    fn alive_neighbor_count(&self, x: i64, y: i64) -> u8 {
-        let mut count = 0;
-        for dx in -1_i64..=1 {
-            for dy in -1_i64..=1 {
-                if dx == 0 && dy == 0 {
-                    continue;
-                }
-                let yy = y + dy;
-                let xx = x + dx;
-                count += self.is_cell_alive(xx, yy) as u8;
-            }
-        }
-        count
-    }
-
-    pub fn tick(&mut self, log_times: u8) {
-        let times: u32 = 1 << log_times;
-        for _ in 0..times {
-            self.tick_internal();
+            };
         }
     }
 
-    fn tick_internal(&mut self) {
-        let mut rows_to_compute = BTreeSet::new();
-        let mut min_x : i64 = 0;
-        let mut max_x : i64 = 0;
-
-        for (y, row) in &self.alive_cells_rows {
-            rows_to_compute.insert(y-1);
-            rows_to_compute.insert(*y);
-            rows_to_compute.insert(y+1);
-            for x in row {
-                min_x = min(min_x, *x);
-                max_x = max(max_x, *x);
-            }
-        }
-
-        let mut result = BTreeMap::<YCoord, BTreeSet<XCoord>>::new();
-
-        for y in rows_to_compute {
-            for x in min_x-1..=max_x+1 {
-                let neighbours = self.alive_neighbor_count(x, y);
-                let cell = self.is_cell_alive(x, y);
-                
-                let next_gen = match (cell, neighbours) {
-                    (false, 3) => true,
-                    (true, 2..=3) => true,
-                    _ => false
-                };
-
-                if next_gen {
-                    result
-                        .entry(y)
-                        .or_default()
-                        .insert(x);
-                }
-            }
-        }
-
-        self.alive_cells_rows = result  
+    fn construct_root(min_x: i64, min_y: i64, alive_cells: Vec<Cell>) -> Rc<Node> {
+        // stub 
+        Node::new_empty(0, false, 0)
     }
 }
 
