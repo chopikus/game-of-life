@@ -1,4 +1,6 @@
 use std::rc::Rc;
+use std::hash::{BuildHasherDefault, Hash, Hasher};
+use nohash_hasher::NoHashHasher;
 
 #[derive(Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub struct Cell {
@@ -10,7 +12,7 @@ pub type XCoord = i64;
 pub type YCoord = i64;
 
 /* QuadTree */
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct Node {
     /*
       |A  B|
@@ -20,8 +22,11 @@ pub struct Node {
     // First bit says if a subtree has ON nodes (n), the last 7 bits tell the level (k)
     pub nk: u8,
     pub children: Option<[Rc<Node>; 4]>,
-    pub hash: u32,
+    pub hash: NodeHashType,
 }
+
+pub type NodeHashType = u64;
+pub type NodeHasher = BuildHasherDefault<NoHashHasher<NodeHashType>>;
 
 impl Node {
     #[inline]
@@ -48,7 +53,24 @@ impl Node {
     }
 
     #[inline]
+    pub fn n_u8(&self) -> u8 {
+        if self.nk & (1 << 7) != 0 {1} else {0}
+    }
+
+    #[inline]
     pub fn k(&self) -> u8 {
         self.nk & (1 << 7 - 1)
+    }
+
+    #[inline]
+    pub fn unwrap_children_cloned(&self) -> [Rc<Node>; 4] {
+        self.children.clone().unwrap()
+    }
+
+}
+
+impl Hash for Node {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.hash.hash(state);
     }
 }

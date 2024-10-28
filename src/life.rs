@@ -1,7 +1,10 @@
-use std::{collections::{BTreeMap, BTreeSet}, rc::Rc};
+use std::{collections::{BTreeMap, HashMap}, num::{NonZero, NonZeroUsize}, rc::Rc};
 
-use super::units::{Cell, XCoord, YCoord, Node};
-use std::cmp::{min, max};
+use lru::LruCache;
+use nohash_hasher::BuildNoHashHasher;
+use crate::units::NodeHashType;
+
+use super::units::{Cell, XCoord, YCoord, Node, NodeHasher};
 
 pub struct Life {
    /* 
@@ -20,43 +23,197 @@ pub struct Life {
    */
    shift_x: XCoord,
    shift_y: YCoord,
+
    root: Rc<Node>,
+
    on: Rc<Node>,
-   off: Rc<Node>
+   off: Rc<Node>,
+
+   join_cache: JoinCacheType,
+   zero_cache: ZeroCacheType,
+   life_4x4_cache: Life4x4CacheType
 }
 
-impl Life {
-    pub fn new(alive_cells: Vec<Cell>) -> Life {
-        let off = Node::new_empty(0, false, 0);
-        let on = Node::new_empty(0, true, 1);
+type JoinCacheType = LruCache<[Rc<Node>; 4], Rc<Node>, NodeHasher>; // might be wrong, need to use another hasher possibly
+type ZeroCacheType = BTreeMap<u8, Rc<Node>>;
+type Life4x4CacheType = HashMap<Rc<Node>, Rc<Node>, NodeHasher>;
 
+impl Life {
+    fn life() -> Life {
+       let hasher  = BuildNoHashHasher::<NodeHashType>::default();
+
+       let join_cache_cap = NonZeroUsize::new(6000000).unwrap();
+       let join_cache: JoinCacheType = LruCache::with_hasher(join_cache_cap, hasher.clone());
+
+       let zero_cache: ZeroCacheType = BTreeMap::new();
+       let life_4x4_cache: Life4x4CacheType = HashMap::with_hasher(hasher);
+
+       let off = Node::new_empty(0, false, 0);
+       let on = Node::new_empty(0, true, 1);
+
+       return Life {
+           on: Rc::clone(&on),
+           off: Rc::clone(&off),
+           shift_x: 0,
+           shift_y: 0,
+           root: Rc::clone(&off),
+           join_cache,
+           zero_cache,
+           life_4x4_cache
+       };
+    }
+
+    pub fn new(alive_cells: Vec<Cell>) -> Life {
+        let mut life = Self::life();
+        
         if alive_cells.is_empty() {
-            return Life {
-                on, off,
-                shift_x: 0,
-                shift_y: 0,
-                root: off,
-            };
+            return life;
         } else {
             /* alive_cells is not empty, can unwrap */
             let min_x: i64 = alive_cells.iter().map(|c| c.x).min().unwrap();
             let min_y: i64 = alive_cells.iter().map(|c| c.y).min().unwrap(); 
             
-            let root: Rc<Node> = Self::construct_root(min_x, min_y, alive_cells);
-            let shift_x: i64 = min_x;
-            let shift_y: i64 = min_y;
+            life.root = life.construct_root(min_x, min_y, alive_cells);
+            life.shift_x = min_x;
+            life.shift_y = min_y;
+            
+            while life.root.k() < 29 {
+                life.shift_x += 1 << (life.root.k() - 1);
+                life.shift_y += 1 << (life.root.k() - 1);
 
-            //while ()
-            return Life {
+                life.root = life.centre(Rc::clone(&life.root));
+            }
 
-            };
+            return life;
         }
     }
 
-    fn construct_root(min_x: i64, min_y: i64, alive_cells: Vec<Cell>) -> Rc<Node> {
+    fn construct_root(&mut self, min_x: i64, min_y: i64, alive_cells: Vec<Cell>) -> Rc<Node> {
         // stub 
         Node::new_empty(0, false, 0)
     }
+
+    fn join(&mut self, abcd: [Rc<Node>; 4]) -> Rc<Node> {
+        let cached = self.join_cache.get(&abcd);
+
+        if let Some(result) = cached {
+            return Rc::clone(result);
+        }
+        
+        let [a, b, c, d] = &abcd;
+
+        let hash: u64 = 784753_u64.wrapping_mul(a.k().into())
+                            .wrapping_add(a.hash.wrapping_mul(616207))
+                            .wrapping_add(b.hash.wrapping_mul(990037))
+                            .wrapping_add(c.hash.wrapping_mul(599383))
+                            .wrapping_add(d.hash.wrapping_mul(482263));
+        
+        let n = a.n() | b.n() | c.n() | d.n();
+
+        let joined = Node::new(a.k() + 1, 
+                                         abcd.clone(),
+                                         n,
+                                         hash);
+        
+        self.join_cache.put(abcd.clone(), Rc::clone(&joined));
+
+        return joined;
+    }
+
+    fn get_zero(&mut self, k: u8) -> Rc<Node> {
+        if k == 0 {
+            return Rc::clone(&self.off);
+        }
+
+        let cached = self.zero_cache.get(&k);
+        if let Some(result) = cached {
+            return Rc::clone(result);
+        }
+
+        let prev = self.get_zero(k - 1);
+        let result = self.join([Rc::clone(&prev), 
+                                                Rc::clone(&prev),
+                                                Rc::clone(&prev),
+                                                Rc::clone(&prev)]);
+
+        
+        self.zero_cache.insert(k, Rc::clone(&result));
+
+        result
+    }
+
+    fn centre(&mut self, m: Rc<Node>) -> Rc<Node> {
+        match m.children.clone() {
+            None => panic!("centre panic! m should have children"),
+            Some([a, b, c, d]) => {
+                let zero_to_clone = self.get_zero(m.k() - 1);
+                let zero = || Rc::clone(&zero_to_clone);
+                
+                let ra = self.join([zero(), zero(), zero(), a]);
+                let rb = self.join([zero(), zero(), b, zero()]);
+                let rc = self.join([zero(), c, zero(), zero()]);
+                let rd = self.join([d, zero(), zero(), zero()]);
+
+                self.join([ra, rb, rc, rd])
+            }
+        }
+    }
+
+    fn life_3x3(&self, nodes: [Rc<Node>; 9]) -> Rc<Node> {
+        let [a, b, c,
+             d, e, f,
+             g, h, i] = nodes;
+        
+        let outer_on_cells: u8 = a.n_u8() + b.n_u8() + c.n_u8()
+                               + d.n_u8() + f.n_u8()
+                               + g.n_u8() + h.n_u8() + i.n_u8();
+
+        if (outer_on_cells == 2 && e.n()) || outer_on_cells == 3 {
+            return Rc::clone(&self.on);
+        } else {
+            return Rc::clone(&self.off);
+        }
+    }
+
+    fn life_4x4(&mut self, m: Rc<Node>) -> Rc<Node> {
+        if m.k() != 2 {
+            panic!("life_4x4: Level of node is wrong!");
+        }
+
+        match self.life_4x4_cache.get(&m) {
+            Some(x) => Rc::clone(x),
+            None => {
+                let [a, b, c, d] = m.unwrap_children_cloned();
+                let [aa, ab, ac, ad] = a.unwrap_children_cloned();
+                let [ba, bb, bc, bd] = b.unwrap_children_cloned();
+                let [ca, cb, cc, cd] = c.unwrap_children_cloned();
+                let [da, db, dc, dd] = d.unwrap_children_cloned();
+
+                let ab: Rc<Node> = self.life_3x3([&aa, &ab, &ba, 
+                                                        &ac, &ad, &bc,
+                                                        &ca, &cb, &da].map(Rc::clone));
+
+                let bc: Rc<Node> = self.life_3x3([&ab, &ba, &bb, 
+                                                        &ad, &bc, &bd,
+                                                        &cb, &da, &db].map(Rc::clone));
+
+                let cb: Rc<Node> = self.life_3x3([&ac, &ad, &bc,
+                                                        &ca, &cb, &da,
+                                                        &cc, &cd, &dc].map(Rc::clone));
+
+                let da: Rc<Node> = self.life_3x3([&ad, &bc, &bd,
+                                                        &cb, &da, &db,
+                                                        &cd, &dc, &dd].map(Rc::clone));
+
+                let result = self.join([ab, bc, cb, da]);
+
+                self.life_4x4_cache.insert(m, Rc::clone(&result));
+                
+                result
+            }
+        }
+    }
+
 }
 
 #[cfg(test)]
