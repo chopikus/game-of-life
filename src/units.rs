@@ -1,8 +1,7 @@
 use std::rc::Rc;
-use std::hash::{BuildHasherDefault, Hash, Hasher};
-use nohash_hasher::NoHashHasher;
+use std::hash::{Hash, Hasher};
 
-#[derive(Eq, PartialEq, Ord, PartialOrd, Debug)]
+#[derive(Eq, PartialEq, Ord, PartialOrd, Debug, Hash)]
 pub struct Cell {
     pub x: i64,
     pub y: i64
@@ -26,7 +25,6 @@ pub struct Node {
 }
 
 pub type NodeHashType = u64;
-pub type NodeHasher = BuildHasherDefault<NoHashHasher<NodeHashType>>;
 
 impl Node {
     #[inline]

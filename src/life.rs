@@ -1,10 +1,14 @@
-use std::{collections::{BTreeMap, HashMap}, num::{NonZero, NonZeroUsize}, rc::Rc};
+use std::collections::{BTreeMap, HashMap};
+use std::hash::BuildHasherDefault;
+use std::num::NonZeroUsize;
+use std::rc::Rc;
 
 use lru::LruCache;
-use nohash_hasher::BuildNoHashHasher;
+use nohash_hasher::NoHashHasher;
+use seahash::SeaHasher;
 use crate::units::NodeHashType;
 
-use super::units::{Cell, XCoord, YCoord, Node, NodeHasher};
+use super::units::{Cell, XCoord, YCoord, Node};
 
 pub struct Life {
    /* 
@@ -34,19 +38,21 @@ pub struct Life {
    life_4x4_cache: Life4x4CacheType
 }
 
-type JoinCacheType = LruCache<[Rc<Node>; 4], Rc<Node>, NodeHasher>; // might be wrong, need to use another hasher possibly
+type DefaultSeaHasher = BuildHasherDefault<SeaHasher>;
+type JoinCacheType = LruCache<[Rc<Node>; 4], Rc<Node>, DefaultSeaHasher>; 
+
 type ZeroCacheType = BTreeMap<u8, Rc<Node>>;
+pub type NodeHasher = BuildHasherDefault<NoHashHasher<NodeHashType>>;
 type Life4x4CacheType = HashMap<Rc<Node>, Rc<Node>, NodeHasher>;
 
 impl Life {
     fn life() -> Life {
-       let hasher  = BuildNoHashHasher::<NodeHashType>::default();
-
        let join_cache_cap = NonZeroUsize::new(6000000).unwrap();
-       let join_cache: JoinCacheType = LruCache::with_hasher(join_cache_cap, hasher.clone());
+       let join_cache_hasher = BuildHasherDefault::<SeaHasher>::default();
+       let join_cache: JoinCacheType = LruCache::with_hasher(join_cache_cap, join_cache_hasher);
 
        let zero_cache: ZeroCacheType = BTreeMap::new();
-       let life_4x4_cache: Life4x4CacheType = HashMap::with_hasher(hasher);
+       let life_4x4_cache: Life4x4CacheType = HashMap::default();
 
        let off = Node::new_empty(0, false, 0);
        let on = Node::new_empty(0, true, 1);
@@ -89,8 +95,47 @@ impl Life {
     }
 
     fn construct_root(&mut self, min_x: i64, min_y: i64, alive_cells: Vec<Cell>) -> Rc<Node> {
-        // stub 
-        Node::new_empty(0, false, 0)
+        let mut pattern = alive_cells.into_iter()
+                          .map(|cell| (cell, Rc::clone(&self.on)))
+                          .collect::<HashMap<_, _, DefaultSeaHasher>>();
+
+        let mut k: u8 = 0;
+
+        while pattern.len() > 1 {
+            let z = self.get_zero(k);
+
+            let pop = |pattern: &mut HashMap<_, _, _>, x, y| -> Rc<Node> {
+                match pattern.remove(&Cell{x, y}) {
+                    Some(value) => value,
+                    None => Rc::clone(&z)
+                }
+            };
+
+            let mut next_level = HashMap::<Cell, Rc<Node>, DefaultSeaHasher>::default();
+
+            while pattern.len() > 0 {
+                // can unwrap since pattern.len() > 0
+                let (c, _) = &pattern.iter().next().unwrap();
+                let (mut x, mut y) = (c.x, c.y);
+
+                x -= x % 2;
+                y -= y % 2;
+                let a = pop(&mut pattern, x, y);
+                let b = pop(&mut pattern, x + 1, y);
+                let c = pop(&mut pattern, x, y + 1);
+                let d = pop(&mut pattern, x + 1, y + 1);
+                let r = self.join([a, b, c, d]);
+
+                next_level.insert(Cell{x, y}, r);
+            }
+            
+            pattern = next_level;
+            k += 1;
+        }
+
+        assert_eq!(pattern.len(), 1);
+
+        return Rc::clone(&pattern.iter().next().unwrap().1);
     }
 
     fn join(&mut self, abcd: [Rc<Node>; 4]) -> Rc<Node> {
@@ -103,10 +148,10 @@ impl Life {
         let [a, b, c, d] = &abcd;
 
         let hash: u64 = 784753_u64.wrapping_mul(a.k().into())
-                            .wrapping_add(a.hash.wrapping_mul(616207))
-                            .wrapping_add(b.hash.wrapping_mul(990037))
-                            .wrapping_add(c.hash.wrapping_mul(599383))
-                            .wrapping_add(d.hash.wrapping_mul(482263));
+                                  .wrapping_add(a.hash.wrapping_mul(616207))
+                                  .wrapping_add(b.hash.wrapping_mul(990037))
+                                  .wrapping_add(c.hash.wrapping_mul(599383))
+                                  .wrapping_add(d.hash.wrapping_mul(482263));
         
         let n = a.n() | b.n() | c.n() | d.n();
 
@@ -132,9 +177,9 @@ impl Life {
 
         let prev = self.get_zero(k - 1);
         let result = self.join([Rc::clone(&prev), 
-                                                Rc::clone(&prev),
-                                                Rc::clone(&prev),
-                                                Rc::clone(&prev)]);
+                                Rc::clone(&prev),
+                                Rc::clone(&prev),
+                                Rc::clone(&prev)]);
 
         
         self.zero_cache.insert(k, Rc::clone(&result));
@@ -190,20 +235,20 @@ impl Life {
                 let [da, db, dc, dd] = d.unwrap_children_cloned();
 
                 let ab: Rc<Node> = self.life_3x3([&aa, &ab, &ba, 
-                                                        &ac, &ad, &bc,
-                                                        &ca, &cb, &da].map(Rc::clone));
+                                                  &ac, &ad, &bc,
+                                                  &ca, &cb, &da].map(Rc::clone));
 
                 let bc: Rc<Node> = self.life_3x3([&ab, &ba, &bb, 
-                                                        &ad, &bc, &bd,
-                                                        &cb, &da, &db].map(Rc::clone));
+                                                  &ad, &bc, &bd,
+                                                  &cb, &da, &db].map(Rc::clone));
 
                 let cb: Rc<Node> = self.life_3x3([&ac, &ad, &bc,
-                                                        &ca, &cb, &da,
-                                                        &cc, &cd, &dc].map(Rc::clone));
+                                                  &ca, &cb, &da,
+                                                  &cc, &cd, &dc].map(Rc::clone));
 
                 let da: Rc<Node> = self.life_3x3([&ad, &bc, &bd,
-                                                        &cb, &da, &db,
-                                                        &cd, &dc, &dd].map(Rc::clone));
+                                                  &cb, &da, &db,
+                                                  &cd, &dc, &dd].map(Rc::clone));
 
                 let result = self.join([ab, bc, cb, da]);
 
