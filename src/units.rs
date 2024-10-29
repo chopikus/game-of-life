@@ -11,7 +11,7 @@ pub type XCoord = i64;
 pub type YCoord = i64;
 
 /* QuadTree */
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Node {
     /*
       |A  B|
@@ -57,7 +57,7 @@ impl Node {
 
     #[inline]
     pub fn k(&self) -> u8 {
-        self.nk & (1 << 7 - 1)
+        self.nk & ((1 << 7) - 1)
     }
 
     #[inline]

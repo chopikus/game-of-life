@@ -35,7 +35,8 @@ pub struct Life {
 
    join_cache: JoinCacheType,
    zero_cache: ZeroCacheType,
-   life_4x4_cache: Life4x4CacheType
+   life_4x4_cache: Life4x4CacheType,
+   successor_cache: SuccessorCacheType
 }
 
 type DefaultSeaHasher = BuildHasherDefault<SeaHasher>;
@@ -45,6 +46,8 @@ type ZeroCacheType = BTreeMap<u8, Rc<Node>>;
 pub type NodeHasher = BuildHasherDefault<NoHashHasher<NodeHashType>>;
 type Life4x4CacheType = HashMap<Rc<Node>, Rc<Node>, NodeHasher>;
 
+type SuccessorCacheType = LruCache<(Rc<Node>, u8), Rc<Node>, DefaultSeaHasher>;
+
 impl Life {
     fn life() -> Life {
        let join_cache_cap = NonZeroUsize::new(6000000).unwrap();
@@ -53,6 +56,10 @@ impl Life {
 
        let zero_cache: ZeroCacheType = BTreeMap::new();
        let life_4x4_cache: Life4x4CacheType = HashMap::default();
+
+       let successor_cache_cap = NonZeroUsize::new(6000000).unwrap();
+       let successor_cache_hasher = BuildHasherDefault::<SeaHasher>::default();
+       let successor_cache: SuccessorCacheType = LruCache::with_hasher(successor_cache_cap, successor_cache_hasher);
 
        let off = Node::new_empty(0, false, 0);
        let on = Node::new_empty(0, true, 1);
@@ -65,7 +72,8 @@ impl Life {
            root: Rc::clone(&off),
            join_cache,
            zero_cache,
-           life_4x4_cache
+           life_4x4_cache,
+           successor_cache
        };
     }
 
@@ -160,9 +168,9 @@ impl Life {
         let n = a.n() | b.n() | c.n() | d.n();
 
         let joined = Node::new(a.k() + 1, 
-                                         abcd.clone(),
-                                         n,
-                                         hash);
+                               abcd.clone(),
+                               n,
+                               hash);
         
         self.join_cache.put(abcd.clone(), Rc::clone(&joined));
 
@@ -238,23 +246,25 @@ impl Life {
                 let [ca, cb, cc, cd] = c.unwrap_children_cloned();
                 let [da, db, dc, dd] = d.unwrap_children_cloned();
 
-                let ab: Rc<Node> = self.life_3x3([&aa, &ab, &ba, 
-                                                  &ac, &ad, &bc,
-                                                  &ca, &cb, &da].map(Rc::clone));
+                let o_ab: Rc<Node> = self.life_3x3([&aa, &ab, &ba, 
+                                                    &ac, &ad, &bc,
+                                                    &ca, &cb, &da].map(Rc::clone));
+            
 
-                let bc: Rc<Node> = self.life_3x3([&ab, &ba, &bb, 
-                                                  &ad, &bc, &bd,
-                                                  &cb, &da, &db].map(Rc::clone));
+                let o_bc: Rc<Node> = self.life_3x3([&ab, &ba, &bb, 
+                                                    &ad, &bc, &bd,
+                                                    &cb, &da, &db].map(Rc::clone));
 
-                let cb: Rc<Node> = self.life_3x3([&ac, &ad, &bc,
-                                                  &ca, &cb, &da,
-                                                  &cc, &cd, &dc].map(Rc::clone));
 
-                let da: Rc<Node> = self.life_3x3([&ad, &bc, &bd,
-                                                  &cb, &da, &db,
-                                                  &cd, &dc, &dd].map(Rc::clone));
+                let o_cb: Rc<Node> = self.life_3x3([&ac, &ad, &bc,
+                                                    &ca, &cb, &da,
+                                                    &cc, &cd, &dc].map(Rc::clone));
 
-                let result = self.join([ab, bc, cb, da]);
+                let o_da: Rc<Node> = self.life_3x3([&ad, &bc, &bd,
+                                                    &cb, &da, &db,
+                                                    &cd, &dc, &dd].map(Rc::clone));
+
+                let result = self.join([o_ab, o_bc, o_cb, o_da]);
 
                 self.life_4x4_cache.insert(m, Rc::clone(&result));
                 
@@ -263,13 +273,33 @@ impl Life {
         }
     }
 
+    /*fn successor(&mut self, m: Rc<Node>, mut j: u8) -> Rc<Node> {
+        if m.children.is_none() {
+            panic!("successor: m doesn't have children!");
+        }
+
+        if m.k() == 1 {
+            return m;
+        }
+
+        if m.k() == 2 {
+            let result = self.life_4x4(m);
+            return result;
+        }
+
+        if j > m.k() - 2 {
+            j = m.k() - 2;
+        }
+
+        
+    }*/
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn glider() -> Life {
+    /*fn glider() -> Life {
         let alive_cells = [
             Cell{x: 1, y: 0},
             Cell{x: 2, y: 1}, 
@@ -305,5 +335,89 @@ mod tests {
         assert!(alive_cells.contains(&Cell{x: 1, y: 2}));
         assert!(alive_cells.contains(&Cell{x: 2, y: 2}));
         assert!(alive_cells.contains(&Cell{x: 1, y: 3}));
+    }*/
+
+    #[test]
+    fn test_life_3x3_off() {
+        let life = Life::life();
+        let on = Rc::clone(&life.on);
+        let off = Rc::clone(&life.off);
+
+        let state = [&on, &on, &on,
+                     &on, &on, &on,
+                     &on, &on, &on].map(Rc::clone);
+
+        assert_eq!(life.life_3x3(state), off);
+    }
+
+    #[test]
+    fn test_life_3x3_on() {
+        let life = Life::life();
+        let on = Rc::clone(&life.on);
+        let off = Rc::clone(&life.off);
+
+        let state = [&off, &on, &off,
+                     &on, &off, &off,
+                     &on, &off, &off].map(Rc::clone);
+
+        assert_eq!(life.life_3x3(state), on);
+    }
+
+    fn gen_node_4x4(life: &mut Life, state: [Rc<Node>; 16]) -> Rc<Node> {
+        let a = life.join([&state[0], &state[1],
+                           &state[4], &state[5]].map(Rc::clone));
+
+        let b = life.join([&state[2], &state[3],
+                           &state[6], &state[7]].map(Rc::clone));
+
+        let c = life.join([&state[8], &state[9],
+                           &state[12], &state[13]].map(Rc::clone));
+
+        let d = life.join([&state[10], &state[11],
+                           &state[14], &state[15]].map(Rc::clone));
+
+        return life.join([a, b, c, d]);
+    }
+
+    #[test]
+    fn test_life_4x4_off() {
+        let mut life = Life::life();
+        let on = Rc::clone(&life.on);
+        let off = Rc::clone(&life.off);
+
+        let state = [&off, &on, &on, &on,
+                     &on, &off, &off, &on,
+                     &on, &off, &off, &on,
+                     &off, &on, &on, &off
+                     ].map(Rc::clone);
+        
+        let input = gen_node_4x4(&mut life, state);
+
+        let children = [&off, &off,
+                        &off, &off].map(Rc::clone);
+
+        let output = life.join(children);
+        assert_eq!(life.life_4x4(input), output);
+    }
+
+    #[test]
+    fn test_life_4x4_on() {
+        let mut life = Life::life();
+        let on = Rc::clone(&life.on);
+        let off = Rc::clone(&life.off);
+
+        let state = [&off, &off, &off, &off,
+                     &off, &on, &on, &off,
+                     &off, &on, &on, &off,
+                     &off, &off, &off, &off
+                     ].map(Rc::clone);
+        
+        let input = gen_node_4x4(&mut life, state);
+
+        let children = [&on, &on,
+                        &on, &on].map(Rc::clone);
+
+        let output = life.join(children);
+        assert_eq!(life.life_4x4(input), output);
     }
 }

@@ -27,7 +27,7 @@ impl Universe {
         }
     }
 
-    pub fn tick(&mut self, log_times: u8) {
+    /*pub fn tick(&mut self, log_times: u8) {
         self.life.tick(log_times);
     }
 
@@ -46,5 +46,5 @@ impl Universe {
 
     pub fn output(&self) -> *const i64 { 
         return self.output.as_ptr();
-    }   
+    } */  
 }
