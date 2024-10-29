@@ -96,7 +96,10 @@ impl Life {
 
     fn construct_root(&mut self, min_x: i64, min_y: i64, alive_cells: Vec<Cell>) -> Rc<Node> {
         let mut pattern = alive_cells.into_iter()
-                          .map(|cell| (cell, Rc::clone(&self.on)))
+                          .map(|cell| (
+                                       (cell.x - min_x, cell.y - min_y),
+                                       Rc::clone(&self.on)
+                                      ))
                           .collect::<HashMap<_, _, DefaultSeaHasher>>();
 
         let mut k: u8 = 0;
@@ -105,28 +108,29 @@ impl Life {
             let z = self.get_zero(k);
 
             let pop = |pattern: &mut HashMap<_, _, _>, x, y| -> Rc<Node> {
-                match pattern.remove(&Cell{x, y}) {
+                match pattern.remove(&(x, y)) {
                     Some(value) => value,
                     None => Rc::clone(&z)
                 }
             };
 
-            let mut next_level = HashMap::<Cell, Rc<Node>, DefaultSeaHasher>::default();
+            let mut next_level = HashMap
+                                 ::<(i64, i64), Rc<Node>, DefaultSeaHasher>
+                                 ::default();
 
             while pattern.len() > 0 {
                 // can unwrap since pattern.len() > 0
-                let (c, _) = &pattern.iter().next().unwrap();
-                let (mut x, mut y) = (c.x, c.y);
-
-                x -= x % 2;
-                y -= y % 2;
+                let ((x, y), _) = &pattern.iter().next().unwrap();
+                
+                let x = x - x % 2;
+                let y = y - y % 2;
                 let a = pop(&mut pattern, x, y);
                 let b = pop(&mut pattern, x + 1, y);
                 let c = pop(&mut pattern, x, y + 1);
                 let d = pop(&mut pattern, x + 1, y + 1);
                 let r = self.join([a, b, c, d]);
 
-                next_level.insert(Cell{x, y}, r);
+                next_level.insert((x, y), r);
             }
             
             pattern = next_level;
