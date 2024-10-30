@@ -1,24 +1,13 @@
-# rust-impl branch
-The previous C++ implementation had several issues:
-* Computation, drawing, mouse handling were done on a single thread
-* Frontend code readability could be better
-* Game cycle is off for small speeds
-* Parsing the pattern file is too slow (>10s) for large files (16MB+)
-* Memory issues on some Emscripten versions
-
-In this branch I try to fix those problems.
-
-Done so far:
-* Separated UI handling, drawing on canvas, and calculating next generation on different threads
-* Refactored frontend to different files
-* Fixed the game cycle
-* File reading seems to be faster
-
-In progress:
-* moving calculations to Rust (basic algorithm is there but not Hashlife)
+# rust implementation
+Compared to the previous C++ implementation, now:
+* Computation, drawing, mouse handling are done on different threads;
+* Frontend code readability is better;
+* Game cycle is better, before it was off for small speeds;
+* Parsing the pattern file is faster (was >10s for large files (16MB+))
+* Fixed memory issues
 
 ## steps to run
-1. `./build.sh` or `wasm-pack build --out-dir front/pkg --target web`
+1. `./build.sh` or `wasm-pack build --out-dir front/pkg --target web --release`
 2. run a local server from `front` folder, (e.g. `cd front; basic-http-server .`)
 
 ## benchmark
