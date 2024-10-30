@@ -14,11 +14,11 @@ function setSpeedText() {
 function onPausePlay() {
    if (!isPaused) {
         setIsPaused(true);
-        document.getElementById("game-pause-play-button").style.backgroundImage = "url(/static/play-button.png)";
+        document.getElementById("game-pause-play-button").style.backgroundImage = "url(./static/play-button.png)";
         setSpeedText();
    } else {
         setIsPaused(false);
-        document.getElementById("game-pause-play-button").style.backgroundImage = "url(/static/pause-button.png)";
+        document.getElementById("game-pause-play-button").style.backgroundImage = "url(./static/pause-button.png)";
         setSpeedText();
    }
 }
