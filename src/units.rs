@@ -11,7 +11,7 @@ pub type XCoord = i64;
 pub type YCoord = i64;
 
 /* QuadTree */
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Node {
     /*
       |A  B|
@@ -65,7 +65,50 @@ impl Node {
         self.children.clone().unwrap()
     }
 
+    #[inline]
+    pub fn a(&self) -> Rc<Node> {
+        Rc::clone(&self.children.as_ref().unwrap()[0])
+    }
+
+    #[inline]
+    pub fn b(&self) -> Rc<Node> {
+        Rc::clone(&self.children.as_ref().unwrap()[1])
+    }
+
+    #[inline]
+    pub fn c(&self) -> Rc<Node> {
+        Rc::clone(&self.children.as_ref().unwrap()[2])
+    }
+
+    #[inline]
+    pub fn d(&self) -> Rc<Node> {
+        Rc::clone(&self.children.as_ref().unwrap()[3])
+    }
 }
+
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        let children = self.children.as_ref();
+        let other_children = other.children.as_ref();
+
+        let children_eq: bool = match (children, other_children) {
+            (Some(x), Some(y)) => {
+                let [a, b, c, d] = x;
+                let [oa, ob, oc, od] = y;
+                
+                Rc::<Node>::ptr_eq(a, oa) &&
+                Rc::<Node>::ptr_eq(b, ob) &&
+                Rc::<Node>::ptr_eq(c, oc) && 
+                Rc::<Node>::ptr_eq(d, od)
+            },
+            (None, None) => true,
+            _ => false,
+        };
+
+        self.nk == other.nk && children_eq && self.hash == other.hash
+    }
+}
+impl Eq for Node {}
 
 impl Hash for Node {
     fn hash<H: Hasher>(&self, state: &mut H) {

@@ -2,7 +2,7 @@
 name = "game-of-life-rust"
 version = "0.1.0"
 authors = ["Ihor Chovpan <i.chovpan@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

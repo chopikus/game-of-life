@@ -6,10 +6,12 @@ use std::rc::Rc;
 use lru::LruCache;
 use nohash_hasher::NoHashHasher;
 use seahash::SeaHasher;
+use wasm_bindgen::prelude::wasm_bindgen;
 use crate::units::NodeHashType;
 
 use super::units::{Cell, XCoord, YCoord, Node};
 
+//#[allow(dead_code)]
 pub struct Life {
    /* 
     Fixing user coordinates
@@ -48,6 +50,15 @@ type Life4x4CacheType = HashMap<Rc<Node>, Rc<Node>, NodeHasher>;
 
 type SuccessorCacheType = LruCache<(Rc<Node>, u8), Rc<Node>, DefaultSeaHasher>;
 
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+//#[allow(dead_code)]
 impl Life {
     fn life() -> Life {
        let join_cache_cap = NonZeroUsize::new(6000000).unwrap();
@@ -78,6 +89,8 @@ impl Life {
     }
 
     pub fn new(alive_cells: Vec<Cell>) -> Life {
+        log("got alive_cells");
+
         let mut life = Self::life();
         
         if alive_cells.is_empty() {
@@ -108,22 +121,23 @@ impl Life {
                                        (cell.x - min_x, cell.y - min_y),
                                        Rc::clone(&self.on)
                                       ))
-                          .collect::<HashMap<_, _, DefaultSeaHasher>>();
+                          .collect::<BTreeMap<_, _>>();
+        log("pattern");
 
         let mut k: u8 = 0;
 
         while pattern.len() > 1 {
             let z = self.get_zero(k);
 
-            let pop = |pattern: &mut HashMap<_, _, _>, x, y| -> Rc<Node> {
+            let pop = |pattern: &mut BTreeMap<_, _>, x, y| -> Rc<Node> {
                 match pattern.remove(&(x, y)) {
                     Some(value) => value,
                     None => Rc::clone(&z)
                 }
             };
 
-            let mut next_level = HashMap
-                                 ::<(i64, i64), Rc<Node>, DefaultSeaHasher>
+            let mut next_level = BTreeMap
+                                 ::<(i64, i64), Rc<Node>>
                                  ::default();
 
             while pattern.len() > 0 {
@@ -132,19 +146,21 @@ impl Life {
                 
                 let x = x - x % 2;
                 let y = y - y % 2;
+
                 let a = pop(&mut pattern, x, y);
                 let b = pop(&mut pattern, x + 1, y);
                 let c = pop(&mut pattern, x, y + 1);
                 let d = pop(&mut pattern, x + 1, y + 1);
+
                 let r = self.join([a, b, c, d]);
 
-                next_level.insert((x, y), r);
+                next_level.insert((x / 2, y / 2), r);
             }
             
             pattern = next_level;
             k += 1;
         }
-
+        log("pattern_finish");
         assert_eq!(pattern.len(), 1);
 
         return Rc::clone(&pattern.iter().next().unwrap().1);
@@ -273,7 +289,43 @@ impl Life {
         }
     }
 
-    /*fn successor(&mut self, m: Rc<Node>, mut j: u8) -> Rc<Node> {
+    #[allow(unused_variables)]
+    fn c1_c9(&mut self, m: Rc<Node>, j: u8) -> [Rc<Node>; 9] {
+
+        let [a, b, c, d] = m.unwrap_children_cloned();
+        
+        let [aa, ab, ac, ad] = a.unwrap_children_cloned();
+        let [ba, bb, bc, bd] = b.unwrap_children_cloned();
+        let [ca, cb, cc, cd] = c.unwrap_children_cloned();
+        let [da, db, dc, dd] = d.unwrap_children_cloned();
+
+        let c1 = self.successor(a, j);
+
+        let c2_join = self.join([&ab, &ba, &ad, &bc].map(Rc::clone));
+        let c2      = self.successor(c2_join, j);
+
+        let c3 = self.successor(b, j);
+
+        let c4_join = self.join([&ac, &ad, &ca, &cb].map(Rc::clone));
+        let c4      = self.successor(c4_join, j);
+
+        let c5_join = self.join([&ad, &bc, &cb, &da].map(Rc::clone));
+        let c5      = self.successor(c5_join, j);
+
+        let c6_join = self.join([&bc, &bd, &da, &db].map(Rc::clone));
+        let c6      = self.successor(c6_join, j);
+
+        let c7 = self.successor(c, j);
+
+        let c8_join = self.join([&cb, &da, &cd, &dc].map(Rc::clone));
+        let c8      = self.successor(c8_join, j);
+
+        let c9 = self.successor(d, j);
+
+        return [c1, c2, c3, c4, c5, c6, c7, c8, c9];
+    }
+
+    fn successor(&mut self, m: Rc<Node>, mut j: u8) -> Rc<Node> {
         if m.children.is_none() {
             panic!("successor: m doesn't have children!");
         }
@@ -291,15 +343,108 @@ impl Life {
             j = m.k() - 2;
         }
 
+        let key = (Rc::clone(&m), j);
+        let cache_result = self.successor_cache.get(&key);
+
+        if let Some(x) = cache_result {
+            return Rc::clone(&x);
+        }
+
+        let [c1, c2, c3,
+             c4, c5, c6,
+             c7, c8, c9] = self.c1_c9(Rc::clone(&m), j);
+
+        if j < m.k() - 2 {
+            let a = self.join([c1.d(), c2.c(), c4.b(), c5.a()]);
+            let b = self.join([c2.d(), c3.c(), c5.b(), c6.a()]);
+            let c = self.join([c4.d(), c5.c(), c7.b(), c8.a()]);
+            let d = self.join([c5.d(), c6.c(), c8.b(), c9.a()]);
+
+            let r = self.join([a, b, c, d]);
+            self.successor_cache.put(key, Rc::clone(&r));
+
+            return r;
+        } else {
+            let a = self.join([&c1, &c2, &c4, &c5].map(Rc::clone));
+            let b = self.join([&c2, &c3, &c5, &c6].map(Rc::clone));
+            let c = self.join([&c4, &c5, &c7, &c8].map(Rc::clone));
+            let d = self.join([&c5, &c6, &c8, &c9].map(Rc::clone));
+
+            let a = self.successor(a, j);
+            let b = self.successor(b, j);
+            let c = self.successor(c, j);
+            let d = self.successor(d, j);
+
+            let r = self.join([a, b, c, d]);
+            self.successor_cache.put(key, Rc::clone(&r));
+
+            return r;
+        }
+    }
+
+    pub fn tick(&mut self, j: u8) {
+        let root = Rc::clone(&self.root);
+        let suc = self.successor(root, j);
+        self.root = self.centre(suc);
+    }
+
+    fn append_alive_cells(&self, node: Rc<Node>, output: &mut Vec<Cell>,
+                          level: u8,
+                          x: i64, y: i64,
+                          bounds: [i64; 4]) {
+        if !node.n() {
+            return;
+        }
+
+        let size: i64 = 1 << node.k();
+        let [min_x, min_y, max_x, max_y] = bounds;
+
+        if x + size <= min_x || x > max_x {
+            return;
+        }
         
-    }*/
+        if y + size <= min_y || y > max_y {
+            return;
+        }
+
+        if node.k() == level {
+            output.push(Cell{x: x - self.shift_x, y: y - self.shift_y});
+            return;
+        }
+
+        let offset: i64 = size >> 1;
+        let [a, b, c, d] = node.unwrap_children_cloned();
+
+        self.append_alive_cells(a, output, level, x, y, bounds);
+        self.append_alive_cells(b, output, level, x + offset, y, bounds);
+        self.append_alive_cells(c, output, level, x, y + offset, bounds);
+        self.append_alive_cells(d, output, level, x + offset, y + offset, bounds);
+    }
+
+    pub fn alive_cells(&self, level: u8, 
+                    mut min_x: i64, mut min_y: i64, 
+                    mut max_x: i64, mut max_y: i64) -> Vec<Cell> {
+        
+        min_x += self.shift_x;
+        min_y += self.shift_y;
+
+        max_x += self.shift_x;
+        max_y += self.shift_y;
+
+        let mut output = Vec::<Cell>::new();
+        self.append_alive_cells(Rc::clone(&self.root), &mut output,
+                                level, 
+                                0, 0, [min_x, min_y, max_x, max_y]);
+
+        return output;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /*fn glider() -> Life {
+    fn glider() -> Life {
         let alive_cells = [
             Cell{x: 1, y: 0},
             Cell{x: 2, y: 1}, 
@@ -314,28 +459,81 @@ mod tests {
     #[test]
     fn start_cells() {
         let glider = glider();
-        let alive_cells = glider.alive_cells();
+        let alive_cells = glider.alive_cells(0, 0, 0, 5, 5);
         assert_eq!(alive_cells.len(), 5);
         assert!(alive_cells.contains(&Cell{x: 1, y: 0}));
         assert!(alive_cells.contains(&Cell{x: 2, y: 1}));
         assert!(alive_cells.contains(&Cell{x: 0, y: 2}));
         assert!(alive_cells.contains(&Cell{x: 1, y: 2}));
-        assert!(alive_cells.contains(&Cell{x: 1, y: 2}));
+        assert!(alive_cells.contains(&Cell{x: 2, y: 2}));
     }
 
     #[test]
-    fn tick_cells() {
+    fn start_cells_bounds() {
+        let glider = glider();
+        let alive_cells = glider.alive_cells(0, 1, 1, 2, 2);
+        assert_eq!(alive_cells.len(), 3);
+        assert!(alive_cells.contains(&Cell{x: 2, y: 1}));
+        assert!(alive_cells.contains(&Cell{x: 1, y: 2}));
+        assert!(alive_cells.contains(&Cell{x: 2, y: 2}));
+    }
+
+    #[test]
+    fn glider_1_step() {
         let mut glider = glider();
         glider.tick(0);
 
-        let alive_cells = glider.alive_cells();
+        let alive_cells = glider.alive_cells(0, 0, 0, 100, 100);
         assert_eq!(alive_cells.len(), 5);
         assert!(alive_cells.contains(&Cell{x: 0, y: 1}));
         assert!(alive_cells.contains(&Cell{x: 2, y: 1}));
         assert!(alive_cells.contains(&Cell{x: 1, y: 2}));
         assert!(alive_cells.contains(&Cell{x: 2, y: 2}));
         assert!(alive_cells.contains(&Cell{x: 1, y: 3}));
-    }*/
+    }
+
+    #[test]
+    fn glider_2_steps() {
+        let mut glider = glider();
+        glider.tick(1);
+
+        let alive_cells = glider.alive_cells(0, 0, 0, 100, 100);
+        assert_eq!(alive_cells.len(), 5);
+        assert!(alive_cells.contains(&Cell{x: 2, y: 1}));
+        assert!(alive_cells.contains(&Cell{x: 0, y: 2}));
+        assert!(alive_cells.contains(&Cell{x: 2, y: 2}));
+        assert!(alive_cells.contains(&Cell{x: 1, y: 3}));
+        assert!(alive_cells.contains(&Cell{x: 2, y: 3}));
+    }
+
+    #[test]
+    fn glider_3_steps() {
+        let mut glider = glider();
+        glider.tick(1);
+        glider.tick(0);
+
+        let alive_cells = glider.alive_cells(0, 0, 0, 100, 100);
+        assert_eq!(alive_cells.len(), 5);
+        assert!(alive_cells.contains(&Cell{x: 1, y: 1}));
+        assert!(alive_cells.contains(&Cell{x: 2, y: 2}));
+        assert!(alive_cells.contains(&Cell{x: 3, y: 2}));
+        assert!(alive_cells.contains(&Cell{x: 1, y: 3}));
+        assert!(alive_cells.contains(&Cell{x: 2, y: 3}));
+    }
+
+    #[test]
+    fn glider_1048576_steps() {
+        let mut glider = glider();
+        glider.tick(20);
+
+        let alive_cells = glider.alive_cells(0, 0, 0, 1000000, 1000000);
+        assert_eq!(alive_cells.len(), 5);
+        assert!(alive_cells.contains(&Cell{x: 262145, y: 262144}));
+        assert!(alive_cells.contains(&Cell{x: 262146, y: 262145}));
+        assert!(alive_cells.contains(&Cell{x: 262144, y: 262146}));
+        assert!(alive_cells.contains(&Cell{x: 262145, y: 262146}));
+        assert!(alive_cells.contains(&Cell{x: 262146, y: 262146}));
+    }
 
     #[test]
     fn test_life_3x3_off() {

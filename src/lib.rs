@@ -27,13 +27,13 @@ impl Universe {
         }
     }
 
-    /*pub fn tick(&mut self, log_times: u8) {
+    pub fn tick(&mut self, log_times: u8) {
         self.life.tick(log_times);
     }
 
     pub fn req_output(&mut self) {
         self.output.clear();
-        let alive_cells = self.life.alive_cells();
+        let alive_cells = self.life.alive_cells(0, 0, 0, 100, 100);
         for item in alive_cells {
             self.output.push(item.x);
             self.output.push(item.y);
@@ -46,5 +46,5 @@ impl Universe {
 
     pub fn output(&self) -> *const i64 { 
         return self.output.as_ptr();
-    } */  
+    }
 }
