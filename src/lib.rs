@@ -31,9 +31,9 @@ impl Universe {
         self.life.tick(log_times);
     }
 
-    pub fn req_output(&mut self) {
+    pub fn req_output(&mut self, scale: u8, min_x: i64, min_y: i64, max_x: i64, max_y: i64) {
         self.output.clear();
-        let alive_cells = self.life.alive_cells(0, 0, 0, 100, 100);
+        let alive_cells = self.life.alive_cells(scale, min_x, min_y, max_x, max_y);
         for item in alive_cells {
             self.output.push(item.x);
             self.output.push(item.y);

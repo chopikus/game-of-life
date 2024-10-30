@@ -15,6 +15,11 @@ function setIsPaused(x) {
     isPaused = x;
 }
 
+let bounds;
+function setBounds(b) {
+    bounds = b;
+}
+
 function genCycle(time, wasmWorker) {    
     const dt = time - lastTimeGenerated;
     delta += dt;
@@ -40,18 +45,16 @@ function gen(wasmWorker) {
                Then the speed is stored as 6, log2fps is 5.
                Then we need to make 2 ticks, calling universe.tick(log2(2))=universe.tick(6-5).
                universe.tick also accepts log2 of tick amount*/
-            wasmWorker.postMessage({req: "tick", speed: log2speed - log2fps});
+            wasmWorker.postMessage({req: "tick", speed: log2speed - log2fps, bounds: bounds});
         }
         else {
             /* Suppose the speed is 2gen/s, framerate is 32gen/s. */
             /* Then we need to tick 1gen forward every 16'th frame */
             if (frame_number % (1 << (log2fps-log2speed)) == 0) {
-                console.timeLog("tick");
-                wasmWorker.postMessage({req: "tick", speed: 0});
+                wasmWorker.postMessage({req: "tick", speed: 0, bounds: bounds});
             }
         }
     }
 }
-console.time("tick");
 
-export {genCycle, gen, log2fps, isPaused, setIsPaused, log2speed, setlog2speed};
+export {genCycle, gen, log2fps, isPaused, setIsPaused, log2speed, setlog2speed, setBounds};

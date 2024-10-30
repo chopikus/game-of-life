@@ -31,8 +31,6 @@ function draw() {
         return;
     }
     updated = false;
-
-    console.timeLog("draw");
     
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -84,6 +82,23 @@ function drawCells() {
             ctx.closePath();  
         }
     }
+}
+
+function sendBounds() {
+    let w = ctx.canvas.width / scale;
+    let h = ctx.canvas.height / scale;
+    let integer_scale = 0;
+    if (scale < 2) {
+        integer_scale = Math.ceil(Math.log2(2 / scale));
+    }
+
+    // i_scale, viewX, viewY, viewX + w, viewY + h
+    postMessage({res: "bounds", 
+                 bounds: {
+                    scale: integer_scale, 
+                    min_x: Math.floor(viewX),    min_y: Math.floor(viewY), 
+                    max_x: Math.ceil(viewX + w), max_y: Math.ceil(viewY + h)
+                }});
 }
 
 onmessage = (event) => {
@@ -143,8 +158,6 @@ onmessage = (event) => {
             break;
         }
     }
+    sendBounds();
     updated = true;
 };
-
-
-console.log("draw");

@@ -50,14 +50,6 @@ type Life4x4CacheType = HashMap<Rc<Node>, Rc<Node>, NodeHasher>;
 
 type SuccessorCacheType = LruCache<(Rc<Node>, u8), Rc<Node>, DefaultSeaHasher>;
 
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
 //#[allow(dead_code)]
 impl Life {
     fn life() -> Life {
@@ -89,8 +81,6 @@ impl Life {
     }
 
     pub fn new(alive_cells: Vec<Cell>) -> Life {
-        log("got alive_cells");
-
         let mut life = Self::life();
         
         if alive_cells.is_empty() {
@@ -122,8 +112,6 @@ impl Life {
                                        Rc::clone(&self.on)
                                       ))
                           .collect::<BTreeMap<_, _>>();
-        log("pattern");
-
         let mut k: u8 = 0;
 
         while pattern.len() > 1 {
@@ -160,7 +148,6 @@ impl Life {
             pattern = next_level;
             k += 1;
         }
-        log("pattern_finish");
         assert_eq!(pattern.len(), 1);
 
         return Rc::clone(&pattern.iter().next().unwrap().1);

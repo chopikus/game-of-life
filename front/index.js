@@ -1,6 +1,6 @@
 import {showMenu} from "./menu.js";
 import {gameDOMInit} from "./game-dom.js";
-import {genCycle} from "./gen.js";
+import {genCycle, isPaused, setBounds} from "./gen.js";
 
 const wasmWorker = new Worker('./wasmWorker.js', {type: 'module'});
 const canvasWorker = new Worker('./canvasWorker.js', {type: 'module'});
@@ -30,7 +30,14 @@ function response(data) {
         }
         
         case "aliveCellsOk": {
-            canvasWorker.postMessage({req: "canvasUpdateCells", buf: data.buf}, [data.buf]);
+            if (!isPaused) {
+                canvasWorker.postMessage({req: "canvasUpdateCells", buf: data.buf}, [data.buf]);
+            }
+            break;
+        }
+
+        case "bounds": {
+            setBounds(data.bounds);
             break;
         }
 
@@ -39,6 +46,8 @@ function response(data) {
         }
     }
 }
+
+canvasWorker.addEventListener("message", (event) => {response(event.data)});
 
 wasmWorker.addEventListener("message", (event) => {response(event.data)});
 wasmWorker.postMessage({req: "initWasm"});

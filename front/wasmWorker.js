@@ -21,7 +21,12 @@ let onMessageResponse = async (data) => {
 
         case "tick": {
             universe.tick(data.speed);
-            universe.req_output();
+            let bounds = data.bounds;
+            universe.req_output(bounds.scale, 
+                                BigInt(bounds.min_x), 
+                                BigInt(bounds.min_y),
+                                BigInt(bounds.max_x),
+                                BigInt(bounds.max_y));
             const outputPtr = universe.output();
             const outputLen = universe.output_len();
             const cells0 = new BigInt64Array(rustWasm.memory.buffer, outputPtr, outputLen);
