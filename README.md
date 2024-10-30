@@ -1,4 +1,5 @@
-# rust implementation
+https://github.com/user-attachments/assets/20a660a5-8dbb-44cf-9af3-b2088420cbd1
+
 Compared to the previous C++ implementation, now:
 * Computation, drawing, mouse handling are done on different threads;
 * Frontend code readability is better;
