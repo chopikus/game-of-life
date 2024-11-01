@@ -1,17 +1,21 @@
 https://github.com/user-attachments/assets/20a660a5-8dbb-44cf-9af3-b2088420cbd1
 
-Compared to the previous C++ implementation, now:
-* Computation, drawing, mouse handling are done on different threads;
-* Frontend code readability is better;
-* Game cycle is better, before it was off for small speeds;
-* Parsing the pattern file is faster (was >10s for large files (16MB+))
-* Fixed memory issues
-
-## steps to run
+## Steps to run
 1. `./build.sh` or `wasm-pack build --out-dir front/pkg --target web --release`
 2. run a local server from `front` folder, (e.g. `cd front; basic-http-server .`)
 
-## benchmark
+## General description
+
+Previously I wrote the backend part in C++ but the implementation had a lot of problems:
+* Computation, drawing, mouse handling were done on the main thread;
+* Frontend code readability;
+* Game cycle was off for small speeds;
+* Parsing the pattern file was quite slow (>10s for a 16MB file));
+* Memory issues on specific Emscripten versions.
+
+To fix those issues I rewrote the computation to Rust.
+
+## Benchmark
 Before proceding with refactoring, I measured how much time does it take to transfer data from Wasm memory on a worker to JS on a main thread.
 
 Hardware & OS: Ryzen 7 PRO 6850U processor, Radeon 680M GPU, 32GB RAM, Fedora 40.
